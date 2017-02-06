@@ -18,7 +18,7 @@ public class QueuePublisher {
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-            String message = "Hello World!";
+            String message = "kirill.shakirov4@gmail.com";
             channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
             System.out.println(" [x] Sent '" + message + "'");
         } catch (Exception e) {

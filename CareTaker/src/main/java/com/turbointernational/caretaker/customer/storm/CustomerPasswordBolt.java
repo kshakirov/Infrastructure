@@ -28,30 +28,36 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
-        String word = tuple.getString(0);
-        HttpResponse<JsonNode> customerResponse = null;
+        String mail_address = tuple.getString(0);
+        String  password = null;
         try {
-            customerResponse = Unirest.get("http://store.turbointernational.com/attrsreader/product/{id}/standard_oversize/")
-                    .routeParam("id", "45523")
-                    .asJson();
+            password = preparePassToEmail(mail_address);
+            collector.emit(new Values(mail_address, password));
         } catch (UnirestException e) {
             e.printStackTrace();
-        }
-        JSONParser parser = new JSONParser();
-        JSONObject jsonObject = new JSONObject();
-        try {
-            Object obj = parser.parse(customerResponse.getBody().toString());
-            jsonObject = (JSONObject) obj;
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        Integer count = 0;
-        System.out.println(jsonObject.get("reference"));
-        collector.emit(new Values(word, count));
+
+    }
+
+
+    private String preparePassToEmail(String message) throws UnirestException, ParseException {
+        HttpResponse<JsonNode> customerResponse = null;
+        JSONObject jsonObject;
+        String url = "http://store.turbointernational.com/attrsreader/product/{id}/standard_oversize/";
+        customerResponse = Unirest.get(url)
+                .routeParam("id", "45523")
+                .asJson();
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(customerResponse.getBody().toString());
+        jsonObject = (JSONObject) obj;
+        return "new_password";
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("word", "count"));
+
+        declarer.declare(new Fields("mail", "password"));
     }
 }

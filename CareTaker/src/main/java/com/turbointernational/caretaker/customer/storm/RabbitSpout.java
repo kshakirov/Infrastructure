@@ -6,12 +6,9 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
-import backtype.storm.utils.Utils;
 import com.rabbitmq.client.*;
-import com.turbointernational.tutorial.RandomSentenceSpout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
@@ -28,7 +25,6 @@ public class RabbitSpout extends BaseRichSpout
     SpoutOutputCollector _collector;
     Random _rand;
     private static Channel channel;
-
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
@@ -64,17 +60,14 @@ public class RabbitSpout extends BaseRichSpout
                     throws IOException {
                 String message = new String(body, "UTF-8");
                 LOG.debug("Emitting tuple: {}", message);
-                _collector.emit(new Values(message));
+                _collector.emit("forgottenPassword",new Values(message));
             }
-
         };
         try {
             channel.basicConsume(QUEUE_NAME, true, consumer);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     protected String sentence(String input) {
@@ -91,7 +84,8 @@ public class RabbitSpout extends BaseRichSpout
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("word"));
+        declarer.declareStream("forgottenPassword", new Fields("email"));
+        declarer.declareStream("newUser", new Fields("newUserEmail"));
     }
 
 }
