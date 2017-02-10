@@ -10,6 +10,8 @@ import backtype.storm.tuple.Values;
 import org.simplejavamail.email.Email;
 import org.simplejavamail.mailer.Mailer;
 import org.simplejavamail.mailer.config.TransportStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.mail.Message;
 import java.util.HashMap;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class CustomerMailBolt extends BaseBasicBolt {
     Map<String, Integer> counts = new HashMap<String, Integer>();
     private Mailer mailer;
+    private static final Logger LOG = LoggerFactory.getLogger(CustomerMailBolt.class);
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
@@ -34,6 +37,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String word = tuple.getString(0);
         sendMail(word, "");
+        LOG.info("Emitting  " + word);
         collector.emit(new Values(word, ""));
     }
 

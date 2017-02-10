@@ -59,7 +59,7 @@ public class RabbitSpout extends BaseRichSpout
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
                 String message = new String(body, "UTF-8");
-                LOG.debug("Emitting tuple: {}", message);
+                LOG.info("Emitting forgotten email: " +  message);
                 _collector.emit("forgottenPassword",new Values(message));
             }
         };

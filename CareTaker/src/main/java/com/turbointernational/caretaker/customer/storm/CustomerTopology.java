@@ -22,7 +22,7 @@ public class CustomerTopology {
 
         Config conf = new Config();
 
-        conf.setDebug(true);
+        conf.setDebug(false);
         conf.setMaxTaskParallelism(1);
         String topologyName = "word-count";
         LocalCluster cluster = new LocalCluster();
