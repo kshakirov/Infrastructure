@@ -1,12 +1,13 @@
 package com.turbointernational.caretaker.customer.storm;
 
-import backtype.storm.spout.SpoutOutputCollector;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseRichSpout;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
+
 import com.rabbitmq.client.*;
+import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseRichSpout;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class RabbitSpout extends BaseRichSpout
     private static final Logger LOG = LoggerFactory.getLogger(RabbitSpout.class);
     private static final String QUEUE_NAME = "test_java";
     SpoutOutputCollector _collector;
+    private final String rabbitHost = System.getProperty("rabbitHost");
     Random _rand;
     private static Channel channel;
 
@@ -31,7 +33,8 @@ public class RabbitSpout extends BaseRichSpout
         _collector = collector;
         _rand = new Random();
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+
+        factory.setHost(rabbitHost);
         Connection connection = null;
         try {
             connection = factory.newConnection();

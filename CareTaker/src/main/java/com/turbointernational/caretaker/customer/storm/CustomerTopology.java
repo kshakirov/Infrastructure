@@ -1,32 +1,51 @@
 package com.turbointernational.caretaker.customer.storm;
 
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.topology.TopologyBuilder;
-import com.turbointernational.tutorial.RandomSentenceSpout;
-import com.turbointernational.tutorial.WordCountBolt;
+
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.StormSubmitter;
+import org.apache.storm.generated.AlreadyAliveException;
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.topology.TopologyBuilder;
 
 /**
  * Created by kshakirov on 2/6/17.
  */
 public class CustomerTopology {
-    public static void main( String[] args )
-    {
 
-        System.out.println( "Customer Topology started" );
+    private static StormTopology createTopology(){
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new RabbitSpout(), 1);
-
         builder.setBolt("forgotten", new CustomerPasswordBolt(), 1).shuffleGrouping("spout","forgottenPassword");
         builder.setBolt("mailPassword", new CustomerMailBolt(), 1).shuffleGrouping("forgotten");
+        return builder.createTopology();
+    }
 
+    private static Config creatConfig(){
         Config conf = new Config();
-
         conf.setDebug(false);
         conf.setMaxTaskParallelism(1);
-        String topologyName = "word-count";
+        return conf;
+    }
+
+    public static void submitRemoteCluster(String name) throws AlreadyAliveException, InvalidTopologyException, AuthorizationException {
+
+        StormSubmitter.submitTopology(name, creatConfig(),	createTopology());
+    }
+
+    public static void submitLocalCluster(String name){
+
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology(topologyName,conf,builder.createTopology());
+        cluster.submitTopology(name,creatConfig(), createTopology());
+    }
+
+    public static void main( String[] args ) throws InvalidTopologyException, AuthorizationException, AlreadyAliveException {
+
+        System.out.println( "Customer Topology started" );
+        submitLocalCluster("customerTopology");
+        //submitRemoteCluster("customerTopology");
 
 
     }

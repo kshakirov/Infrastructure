@@ -1,16 +1,16 @@
 package com.turbointernational.caretaker.customer.storm;
 
-import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.BasicOutputCollector;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseBasicBolt;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.BasicOutputCollector;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseBasicBolt;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -27,7 +27,7 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
     Map<String, Integer> counts = new HashMap<String, Integer>();
     private static final Logger LOG = LoggerFactory.getLogger(CustomerPasswordBolt.class);
     private static final String url = "/admin/customer/password/reset/";
-    private static final String turboHost = "http://localhost:4700";
+    private static final String turboHost = System.getProperty("turboHost");
     private static final String bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1MDc0NjA0NzUsImlhdCI6MTQ4NTg2MDQ3NSwiaXNzIjoiem9yYWwuY29tIiwic2NvcGVzIjpbInZpZXdfcHJpY2VzIl0sImN1c3RvbWVyIjp7ImlkIjo0ODcsImdyb3VwIjoiRSIsIm5hbWUiOiJLaXJpbGwgU2hha2lyb3YifX0.eO_Nix-jDxgF_6QezL5MSJcMg9lAFWwy878dZ9Fyr_c";
 
     @Override
@@ -59,8 +59,9 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
         HttpResponse<JsonNode> customerResponse = null;
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("email", "kshakirov@zoral.com.ua");
-        customerResponse = Unirest.put(this.turboHost + this.url)
-                .header("Authorization", this.bearer)
+        String path  = "http://" + turboHost + url;
+        customerResponse = Unirest.put(path)
+                .header("Authorization", bearer)
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
                 .body(jsonObject.toJSONString()).asJson();

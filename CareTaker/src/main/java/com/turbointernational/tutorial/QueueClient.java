@@ -15,7 +15,8 @@ public class QueueClient {
             java.lang.InterruptedException, TimeoutException {
 
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        String host = System.getProperty("rabbitHost");
+        factory.setHost(host);
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
         final String[] message = new String[1];
