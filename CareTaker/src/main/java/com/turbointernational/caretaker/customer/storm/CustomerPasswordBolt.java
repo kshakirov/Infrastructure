@@ -27,12 +27,15 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
     Map<String, Integer> counts = new HashMap<String, Integer>();
     private static final Logger LOG = LoggerFactory.getLogger(CustomerPasswordBolt.class);
     private static final String url = "/admin/customer/password/reset/";
-    private static final String turboHost = System.getProperty("turboHost");
+    private static  String turboHost = System.getProperty("turboHost");
+    private static final String turboHostPort = System.getProperty("turboHostPort");
     private static final String bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1MDc0NjA0NzUsImlhdCI6MTQ4NTg2MDQ3NSwiaXNzIjoiem9yYWwuY29tIiwic2NvcGVzIjpbInZpZXdfcHJpY2VzIl0sImN1c3RvbWVyIjp7ImlkIjo0ODcsImdyb3VwIjoiRSIsIm5hbWUiOiJLaXJpbGwgU2hha2lyb3YifX0.eO_Nix-jDxgF_6QezL5MSJcMg9lAFWwy878dZ9Fyr_c";
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
-
+        if (!turboHostPort.isEmpty()){
+             turboHost = turboHost.concat(":" + turboHostPort);
+        }
     }
 
     @Override
