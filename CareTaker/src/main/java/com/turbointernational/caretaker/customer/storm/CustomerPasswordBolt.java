@@ -29,13 +29,14 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
     private static final String url = "/admin/customer/password/reset/";
     private static  String turboHost = System.getProperty("turboHost");
     private static final String turboHostPort = System.getProperty("turboHostPort");
-    private static final String bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1MDc0NjA0NzUsImlhdCI6MTQ4NTg2MDQ3NSwiaXNzIjoiem9yYWwuY29tIiwic2NvcGVzIjpbInZpZXdfcHJpY2VzIl0sImN1c3RvbWVyIjp7ImlkIjo0ODcsImdyb3VwIjoiRSIsIm5hbWUiOiJLaXJpbGwgU2hha2lyb3YifX0.eO_Nix-jDxgF_6QezL5MSJcMg9lAFWwy878dZ9Fyr_c";
+    private static  String bearer = "Bearer ";
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
         if (!turboHostPort.isEmpty()){
              turboHost = turboHost.concat(":" + turboHostPort);
         }
+        bearer = bearer.concat(System.getProperty("token"));
     }
 
     @Override
@@ -46,7 +47,7 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
             password = preparePassToEmail(mail_address);
             if (password != null) {
                 LOG.info("Emitting password " + password + " for email " + mail_address);
-                collector.emit(new Values(mail_address, password));
+                collector.emit("forgottenPassword", new Values(mail_address, password));
             } else {
 
             }
@@ -61,7 +62,7 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
     private String preparePassToEmail(String mail_address) throws UnirestException, ParseException {
         HttpResponse<JsonNode> customerResponse = null;
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("email", "kshakirov@zoral.com.ua");
+        jsonObject.put("email", mail_address);
         String path  = "http://" + turboHost + url;
         customerResponse = Unirest.put(path)
                 .header("Authorization", bearer)
@@ -88,6 +89,6 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-        declarer.declare(new Fields("mail", "password"));
+        declarer.declareStream("forgottenPassword", new Fields("mail", "password"));
     }
 }

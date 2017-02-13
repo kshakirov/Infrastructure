@@ -25,37 +25,42 @@ public class CustomerMailBolt extends BaseBasicBolt {
     Map<String, Integer> counts = new HashMap<String, Integer>();
     private Mailer mailer;
     private static final Logger LOG = LoggerFactory.getLogger(CustomerMailBolt.class);
+    private static final String admin_email = System.getProperty("admin_email");
+    private static final String admin_email_password = System.getProperty("admin_email_password");
+    private static final String admin_smtp= System.getProperty("admin_smtp");
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
-        mailer = new Mailer("smtp.office365.com", 587,
-                "kyrylo.shakirov@zorallabs.com",
-                "",
+        mailer = new Mailer(admin_smtp, 587,
+                admin_email,
+                admin_email_password,
                 TransportStrategy.SMTP_TLS);
     }
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
-        String word = tuple.getString(0);
-        sendMail(word, "");
-        LOG.info("Emitting  " + word);
-        collector.emit(new Values(word, ""));
+        String email_address = tuple.getString(0);
+        Email email = sendMail(email_address, "");
+        mailer.validate(email);
+        mailer.sendMail(email);
+        LOG.info("Emitting  " + email);
+        collector.emit(new Values(email, "Sent Email"));
     }
 
-    private void sendMail(String userEmail, String emailBody) {
+    private Email sendMail(String userEmail, String emailBody) {
         Email email = new Email();
-        email.setFromAddress("Admin", "kyrylo.shakirov@zorallabs.com");
-        email.setReplyToAddress("Admin", "kyrylo.shakirov@zorallabs.com");
+        email.setFromAddress("Admin", admin_email);
+        email.setReplyToAddress("Admin", admin_email);
         email.addRecipient("User", userEmail, Message.RecipientType.TO);
         email.setSubject("hey");
         email.setTextHTML(emailBody);
-
+        return email;
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-        declarer.declareStream("audit", new Fields("email", "count"));
+        declarer.declareStream("audit", new Fields("email", "message"));
     }
 }
 
