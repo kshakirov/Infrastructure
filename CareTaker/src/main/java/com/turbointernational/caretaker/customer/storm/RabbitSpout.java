@@ -8,6 +8,9 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -22,7 +25,7 @@ public class RabbitSpout extends BaseRichSpout
 
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitSpout.class);
-    private static final String QUEUE_NAME = "test_java";
+    private static final String QUEUE_NAME = "customer_email";
     SpoutOutputCollector _collector;
     private final String rabbitHost = System.getProperty("rabbitHost");
     Random _rand;
@@ -58,12 +61,24 @@ public class RabbitSpout extends BaseRichSpout
             e.printStackTrace();
         }
         Consumer consumer = new DefaultConsumer(channel) {
+            private JSONObject readMessage(String message) throws ParseException {
+                JSONParser parser = new JSONParser();
+                Object obj = parser.parse(message);
+                return  (JSONObject) obj;
+            }
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
-                String message = new String(body, "UTF-8");
-                LOG.info("Emitting forgotten email: " +  message);
-                _collector.emit("forgottenPassword",new Values(message));
+                String message_data = new String(body, "UTF-8");
+                JSONObject message = null;
+                try {
+                    message = readMessage(message_data);
+                    LOG.info("Emitting forgotten email: " + (String)  message.get("email"));
+                    _collector.emit("forgottenPassword",new Values(message.get("email")));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
             }
         };
         try {
@@ -90,5 +105,7 @@ public class RabbitSpout extends BaseRichSpout
         declarer.declareStream("forgottenPassword", new Fields("email"));
         declarer.declareStream("newUser", new Fields("newUserEmail"));
     }
+
+
 
 }
