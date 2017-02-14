@@ -8,6 +8,8 @@ import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.jtwig.JtwigModel;
+import org.jtwig.JtwigTemplate;
 import org.simplejavamail.email.Email;
 import org.simplejavamail.mailer.Mailer;
 import org.simplejavamail.mailer.config.TransportStrategy;
@@ -39,22 +41,34 @@ public class CustomerMailBolt extends BaseBasicBolt {
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
-        String email_address = tuple.getString(0);
-        Email email = sendMail(email_address, "");
+        String emailAddress = tuple.getString(0);
+        String password = tuple.getString(1);
+        String emailHtmlBody = prepareEmaiHtmlBody(emailAddress, password,"localhost");
+        Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
         LOG.info("Emitting  " + email);
         collector.emit(new Values(email, "Sent Email"));
     }
 
-    private Email sendMail(String userEmail, String emailBody) {
+    private Email prepareEmail(String emailAddress, String emailHtmlBody) {
         Email email = new Email();
         email.setFromAddress("Admin", admin_email);
         email.setReplyToAddress("Admin", admin_email);
-        email.addRecipient("User", userEmail, Message.RecipientType.TO);
-        email.setSubject("hey");
-        email.setTextHTML(emailBody);
+        email.addRecipient("User", emailAddress, Message.RecipientType.TO);
+        email.setSubject("TurboInternational");
+        email.setTextHTML(emailHtmlBody);
         return email;
+    }
+
+    private String prepareEmaiHtmlBody(String emailAddress, String password, String server){
+        JtwigTemplate template = JtwigTemplate.classpathTemplate("templates/forgotten_password.twig");
+        JtwigModel model = JtwigModel.newModel()
+                .with("email", emailAddress)
+                .with("password", password)
+                .with("server", server);
+
+        return  template.render(model);
     }
 
     @Override
