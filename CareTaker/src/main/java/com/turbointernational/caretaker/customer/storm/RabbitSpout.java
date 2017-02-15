@@ -13,6 +13,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
@@ -30,6 +31,8 @@ public class RabbitSpout extends BaseRichSpout
     private final String rabbitHost = System.getProperty("rabbitHost");
     Random _rand;
     private static Channel channel;
+    private QueueingConsumer consumer;
+    private Connection connection;
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
@@ -38,7 +41,7 @@ public class RabbitSpout extends BaseRichSpout
         ConnectionFactory factory = new ConnectionFactory();
 
         factory.setHost(rabbitHost);
-        Connection connection = null;
+        connection = null;
         try {
             connection = factory.newConnection();
         } catch (IOException e) {
@@ -48,41 +51,35 @@ public class RabbitSpout extends BaseRichSpout
         }
         try {
             channel = connection.createChannel();
+            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            consumer = new QueueingConsumer(channel);
+            channel.basicConsume(QUEUE_NAME, false, consumer);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+
+    private JSONObject readMessage(String message) throws ParseException {
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(message);
+        return (JSONObject) obj;
+    }
+
     @Override
     public void nextTuple() {
-        try {
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Consumer consumer = new DefaultConsumer(channel) {
-            private JSONObject readMessage(String message) throws ParseException {
-                JSONParser parser = new JSONParser();
-                Object obj = parser.parse(message);
-                return  (JSONObject) obj;
-            }
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
-                    throws IOException {
-                String message_data = new String(body, "UTF-8");
-                JSONObject message = null;
-                try {
-                    message = readMessage(message_data);
-                    LOG.info("Emitting forgotten email: " + (String)  message.get("email"));
-                    _collector.emit("forgottenPassword",new Values(message.get("email")));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
 
-            }
-        };
         try {
-            channel.basicConsume(QUEUE_NAME, true, consumer);
+            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+            JSONObject message = readMessage(new String(delivery.getBody()));
+            LOG.info("Emitting forgotten email: " + (String) message.get("email"));
+            _collector.emit("forgottenPassword", new Values(message.get("email")));
+            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,11 +98,24 @@ public class RabbitSpout extends BaseRichSpout
     }
 
     @Override
+    public void close() {
+        LOG.info("close");
+
+        try {
+            channel.close();
+            connection.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        super.close();
+    }
+
+    @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declareStream("forgottenPassword", new Fields("email"));
         declarer.declareStream("newUser", new Fields("newUserEmail"));
     }
-
 
 
 }

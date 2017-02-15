@@ -24,7 +24,6 @@ import java.util.Map;
  * Created by kshakirov on 2/6/17.
  */
 public class CustomerPasswordBolt extends BaseBasicBolt {
-    Map<String, Integer> counts = new HashMap<String, Integer>();
     private static final Logger LOG = LoggerFactory.getLogger(CustomerPasswordBolt.class);
     private static final String url = "/admin/customer/password/reset/";
     private static  String turboHost = System.getProperty("turboHost");
@@ -49,7 +48,7 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
                 LOG.info("Emitting password " + password + " for email " + mail_address);
                 collector.emit("forgottenPassword", new Values(mail_address, password));
             } else {
-
+                LOG.info("There is no User with Email " + mail_address);
             }
         } catch (UnirestException e) {
             e.printStackTrace();

@@ -48,7 +48,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
         mailer.validate(email);
         mailer.sendMail(email);
         LOG.info("Emitting  " + email);
-        collector.emit(new Values(email, "Sent Email"));
+        collector.emit("forgottenPassword", new Values(emailAddress, password));
     }
 
     private Email prepareEmail(String emailAddress, String emailHtmlBody) {
@@ -74,7 +74,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-        declarer.declareStream("audit", new Fields("email", "message"));
+        declarer.declareStream("forgottenPassword", new Fields("email", "passowrd"));
     }
 }
 

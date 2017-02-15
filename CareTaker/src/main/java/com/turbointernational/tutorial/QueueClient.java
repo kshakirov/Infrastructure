@@ -1,5 +1,7 @@
 package com.turbointernational.tutorial;
 import com.rabbitmq.client.*;
+import com.rabbitmq.client.impl.nio.NioParams;
+import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -8,31 +10,41 @@ import java.util.concurrent.TimeoutException;
  * Created by kshakirov on 2/3/17.
  */
 public class QueueClient {
-    private final static String QUEUE_NAME = "test_java";
+    private final static String QUEUE_NAME = "customer_email";
 
     public static void main(String[] argv)
             throws java.io.IOException,
             java.lang.InterruptedException, TimeoutException {
 
         ConnectionFactory factory = new ConnectionFactory();
-        String host = System.getProperty("rabbitHost");
-        factory.setHost(host);
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
-        final String[] message = new String[1];
+        factory.useNio();
+        factory.setNioParams(new NioParams().setNbIoThreads(4));
+        factory.setHost("localhost");
+        Connection connection = null;
+        try {
+            connection = factory.newConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+        try {
+            Channel                    channel = connection.createChannel();
+            channel.queueDeclareNoWait(QUEUE_NAME, false, false, false, null);
+            channel.basicQos(1);
+            QueueingConsumer consumer = new QueueingConsumer(channel);
+            channel.basicConsume(QUEUE_NAME, false, consumer);
+            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+            String message = new String(delivery.getBody());
+            System.out.println(message);
+            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), true);
+            //channel.close();
+            //connection.close();
 
-        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-        Consumer consumer = new DefaultConsumer(channel) {
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
-                    throws IOException {
-                message[0] = new String(body, "UTF-8");
-                System.out.println(" [x] Received '" + message[0] + "'");
-            }
-        };
-        String response = channel.basicConsume(QUEUE_NAME, true, consumer);
-        System.out.println(message[0]);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 }

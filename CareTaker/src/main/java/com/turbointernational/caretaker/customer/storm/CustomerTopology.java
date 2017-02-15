@@ -28,6 +28,7 @@ public class CustomerTopology {
         builder.setSpout("spout", new RabbitSpout(), 1);
         builder.setBolt("forgotten", new CustomerPasswordBolt(), 1).shuffleGrouping("spout", "forgottenPassword");
         builder.setBolt("mailPassword", new CustomerMailBolt(), 1).shuffleGrouping("forgotten", "forgottenPassword");
+        builder.setBolt("messageLog", new MessageLogBolt(), 1).shuffleGrouping("mailPassword", "forgottenPassword");
         return builder.createTopology();
     }
 
