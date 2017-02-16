@@ -42,7 +42,7 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
         if (!turboHostPort.isEmpty()){
              turboHost = turboHost.concat(":" + turboHostPort);
         }
-        bearer = bearer.concat(System.getProperty("token"));
+        bearer = bearer.concat(token);
     }
 
     @Override
