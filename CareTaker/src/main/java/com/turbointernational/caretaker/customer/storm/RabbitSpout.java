@@ -26,13 +26,16 @@ public class RabbitSpout extends BaseRichSpout
 
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitSpout.class);
-    private static final String QUEUE_NAME = "customer_email";
+    private final String QUEUE_NAME = "customer_email";
     SpoutOutputCollector _collector;
-    private final String rabbitHost = System.getProperty("rabbitHost");
+    private  String rabbitHost;
     Random _rand;
     private static Channel channel;
     private QueueingConsumer consumer;
     private Connection connection;
+    public RabbitSpout(String rabbitHost){
+        this.rabbitHost = rabbitHost;
+    }
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {

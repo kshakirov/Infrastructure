@@ -25,10 +25,17 @@ public class CustomerTopology {
 
     private static StormTopology createTopology() {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("spout", new RabbitSpout(), 1);
-        builder.setBolt("forgotten", new CustomerPasswordBolt(), 1).shuffleGrouping("spout", "forgottenPassword");
-        builder.setBolt("mailPassword", new CustomerMailBolt(), 1).shuffleGrouping("forgotten", "forgottenPassword");
-        builder.setBolt("messageLog", new MessageLogBolt(), 1).shuffleGrouping("mailPassword", "forgottenPassword");
+        builder.setSpout("spout", new RabbitSpout(System.getProperty("rabbitHost")), 1);
+        builder.setBolt("forgotten", new CustomerPasswordBolt(System.getProperty("turboHost"),
+                        System.getProperty("turboHostPort"),System.getProperty("token")),
+                1).shuffleGrouping("spout", "forgottenPassword");
+        builder.setBolt("mailPassword",
+                new CustomerMailBolt(System.getProperty("admin_email"), System.getProperty("admin_email_password"),
+                        System.getProperty("admin_smtp")), 1)
+                .shuffleGrouping("forgotten", "forgottenPassword");
+        builder.setBolt("messageLog",  new MessageLogBolt(System.getProperty("turboHost"),
+                        System.getProperty("turboHostPort"), System.getProperty("token")), 1)
+                .shuffleGrouping("mailPassword", "forgottenPassword");
         return builder.createTopology();
     }
 
@@ -70,9 +77,10 @@ public class CustomerTopology {
                 }
 
                 if (commandLine.hasOption("remote")) {
-                    submitLocalCluster("customerTopology");
+                    System.out.println("REMOTE");
+                    submitRemoteCluster("CustomerTopology");
                 } else {
-                    submitRemoteCluster("customerTopology");
+                    submitLocalCluster("customerTopology");
                 }
 
             } else {

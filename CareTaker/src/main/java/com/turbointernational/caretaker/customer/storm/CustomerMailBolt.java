@@ -26,10 +26,16 @@ import java.util.Map;
 public class CustomerMailBolt extends BaseBasicBolt {
     Map<String, Integer> counts = new HashMap<String, Integer>();
     private Mailer mailer;
-    private static final Logger LOG = LoggerFactory.getLogger(CustomerMailBolt.class);
-    private static final String admin_email = System.getProperty("admin_email");
-    private static final String admin_email_password = System.getProperty("admin_email_password");
-    private static final String admin_smtp= System.getProperty("admin_smtp");
+    private static  final Logger LOG = LoggerFactory.getLogger(CustomerMailBolt.class);
+    private  String admin_email = System.getProperty("admin_email");
+    private  String admin_email_password = System.getProperty("admin_email_password");
+    private String admin_smtp= System.getProperty("admin_smtp");
+
+    public CustomerMailBolt(String admin_email, String admin_email_password, String admin_smtp){
+        this.admin_email = admin_email;
+        this.admin_email_password = admin_email_password;
+        this.admin_smtp = admin_smtp;
+    }
 
     @Override
     public void prepare(Map conf, TopologyContext context) {

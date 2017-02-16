@@ -25,10 +25,17 @@ import java.util.Map;
  */
 public class CustomerPasswordBolt extends BaseBasicBolt {
     private static final Logger LOG = LoggerFactory.getLogger(CustomerPasswordBolt.class);
-    private static final String url = "/admin/customer/password/reset/";
-    private static  String turboHost = System.getProperty("turboHost");
-    private static final String turboHostPort = System.getProperty("turboHostPort");
-    private static  String bearer = "Bearer ";
+    private final String url = "/admin/customer/password/reset/";
+    private   String turboHost;
+    private   String turboHostPort;
+    private String token;
+    private   String bearer = "Bearer ";
+
+    public CustomerPasswordBolt(String turboHost, String turboHostPort, String  token){
+        this.turboHost =turboHost;
+        this.turboHostPort = turboHostPort;
+        this.token = token;
+    }
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
