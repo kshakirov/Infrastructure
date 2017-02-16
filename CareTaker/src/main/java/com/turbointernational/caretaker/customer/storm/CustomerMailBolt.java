@@ -27,14 +27,16 @@ public class CustomerMailBolt extends BaseBasicBolt {
     Map<String, Integer> counts = new HashMap<String, Integer>();
     private Mailer mailer;
     private static  final Logger LOG = LoggerFactory.getLogger(CustomerMailBolt.class);
-    private  String admin_email = System.getProperty("admin_email");
-    private  String admin_email_password = System.getProperty("admin_email_password");
-    private String admin_smtp= System.getProperty("admin_smtp");
+    private  String admin_email;
+    private  String admin_email_password;
+    private String admin_smtp;
+    private String hostDnsName;
 
-    public CustomerMailBolt(String admin_email, String admin_email_password, String admin_smtp){
+    public CustomerMailBolt(String admin_email, String admin_email_password, String admin_smtp, String hostDnsName){
         this.admin_email = admin_email;
         this.admin_email_password = admin_email_password;
         this.admin_smtp = admin_smtp;
+        this.hostDnsName = hostDnsName;
     }
 
     @Override
@@ -49,7 +51,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String emailAddress = tuple.getString(0);
         String password = tuple.getString(1);
-        String emailHtmlBody = prepareEmaiHtmlBody(emailAddress, password,"localhost");
+        String emailHtmlBody = prepareEmaiHtmlBody(emailAddress, password, hostDnsName);
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
