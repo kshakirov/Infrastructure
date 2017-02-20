@@ -4,6 +4,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.turbointernational.caretaker.customer.auxillary.RestUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -17,21 +18,20 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by kshakirov on 2/6/17.
  */
-public class CustomerPasswordBolt extends BaseBasicBolt {
-    private static final Logger LOG = LoggerFactory.getLogger(CustomerPasswordBolt.class);
-    private final String url = "/admin/customer/password/reset/";
+public class CustomerRestBolt extends BaseBasicBolt {
+    private static final Logger LOG = LoggerFactory.getLogger(CustomerRestBolt.class);
+    private String url = "/admin/customer/password/reset/";
     private   String turboHost;
     private   String turboHostPort;
     private String token;
     private   String bearer = "Bearer ";
 
-    public CustomerPasswordBolt(String turboHost, String turboHostPort, String  token){
+    public CustomerRestBolt(String turboHost, String turboHostPort, String  token){
         this.turboHost =turboHost;
         this.turboHostPort = turboHostPort;
         this.token = token;
@@ -47,10 +47,21 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
+        String streamId = tuple.getSourceStreamId();
+       if(streamId.equalsIgnoreCase("forgottenPassword")){
+           processForgottenPassword(tuple, collector);
+       }else if(streamId.equalsIgnoreCase("newUser")){
+
+       }
+
+    }
+
+    private void processForgottenPassword(Tuple tuple, BasicOutputCollector collector){
         String mail_address = tuple.getString(0);
         String password = null;
+        url = turboHost + url;
         try {
-            password = preparePassToEmail(mail_address);
+            password = RestUtils.preparePassToEmail(mail_address, url, bearer);
             if (password != null) {
                 LOG.info("Emitting password " + password + " for email " + mail_address);
                 collector.emit("forgottenPassword", new Values(mail_address, password));
@@ -64,33 +75,15 @@ public class CustomerPasswordBolt extends BaseBasicBolt {
         }
     }
 
+    private void processNewUser(){
 
-    private String preparePassToEmail(String mail_address) throws UnirestException, ParseException {
-        HttpResponse<JsonNode> customerResponse = null;
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("email", mail_address);
-        String path  = "http://" + turboHost + url;
-        customerResponse = Unirest.put(path)
-                .header("Authorization", bearer)
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(jsonObject.toJSONString()).asJson();
-        JSONParser parser = new JSONParser();
-        JSONObject response = (JSONObject) parser.parse(customerResponse.getBody().toString());
-        return getPasswordOrFail(response);
     }
 
-    private boolean hasPassword(JSONObject response) {
-        if ((Boolean) response.get("result"))
-            return true;
-        return false;
-    }
 
-    private String getPasswordOrFail(JSONObject response) {
-        if (hasPassword(response))
-            return (String) response.get("password");
-        return null;
-    }
+
+
+
+
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {

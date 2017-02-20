@@ -2,6 +2,7 @@ package com.turbointernational.caretaker.customer.storm;
 
 
 import com.rabbitmq.client.*;
+import com.turbointernational.caretaker.customer.auxillary.SpoutUtils;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -28,12 +29,13 @@ public class RabbitSpout extends BaseRichSpout
     private static final Logger LOG = LoggerFactory.getLogger(RabbitSpout.class);
     private final String QUEUE_NAME = "customer_email";
     SpoutOutputCollector _collector;
-    private  String rabbitHost;
+    private String rabbitHost;
     Random _rand;
     private static Channel channel;
     private QueueingConsumer consumer;
     private Connection connection;
-    public RabbitSpout(String rabbitHost){
+
+    public RabbitSpout(String rabbitHost) {
         this.rabbitHost = rabbitHost;
     }
 
@@ -64,20 +66,21 @@ public class RabbitSpout extends BaseRichSpout
     }
 
 
-    private JSONObject readMessage(String message) throws ParseException {
-        JSONParser parser = new JSONParser();
-        Object obj = parser.parse(message);
-        return (JSONObject) obj;
-    }
-
     @Override
     public void nextTuple() {
 
         try {
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-            JSONObject message = readMessage(new String(delivery.getBody()));
-            LOG.info("Emitting forgotten email: " + (String) message.get("email"));
-            _collector.emit("forgottenPassword", new Values(message.get("email")));
+            JSONObject message = SpoutUtils.readMessage(new String(delivery.getBody()));
+            String emailAddress = SpoutUtils.getEmailAddress(message);
+            if (SpoutUtils.isForgottenPassword(message)) {
+                LOG.info("Emitting forgotten email: " + (String) message.get("email"));
+                _collector.emit("forgottenPassword", new Values(message.get("email")));
+            } else if (SpoutUtils.isNewUser(message)) {
+                LOG.info("Emitting new user email: " + (String) message.get("email"));
+                _collector.emit("newUser", new Values(message.get("email")));
+            }
+
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -103,14 +106,12 @@ public class RabbitSpout extends BaseRichSpout
     @Override
     public void close() {
         LOG.info("close");
-
         try {
             channel.close();
             connection.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
         super.close();
     }
 
