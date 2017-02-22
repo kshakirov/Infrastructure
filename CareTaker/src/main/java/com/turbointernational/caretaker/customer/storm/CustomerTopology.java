@@ -26,13 +26,13 @@ public class CustomerTopology {
     private static StormTopology createTopology() {
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new RabbitSpout(System.getProperty("rabbitHost")), 1);
-        builder.setBolt("forgotten", new CustomerPasswordBolt(System.getProperty("turboHost"),
+        builder.setBolt("forgotten", new CustomerRestBolt(System.getProperty("turboHost"),
                         System.getProperty("turboHostPort"),System.getProperty("token")),
-                1).shuffleGrouping("spout", "forgottenPassword");
+                1).shuffleGrouping("spout", "forgottenPassword").shuffleGrouping("spout", "newUser");
         builder.setBolt("mailPassword",
                 new CustomerMailBolt(System.getProperty("admin_email"), System.getProperty("admin_email_password"),
                         System.getProperty("admin_smtp"), System.getProperty("hostDnsName")), 1)
-                .shuffleGrouping("forgotten", "forgottenPassword");
+                .shuffleGrouping("forgotten", "forgottenPassword").shuffleGrouping("forgotten", "newUser");
         builder.setBolt("messageLog",  new MessageLogBolt(System.getProperty("turboHost"),
                         System.getProperty("turboHostPort"), System.getProperty("token")), 1)
                 .shuffleGrouping("mailPassword", "forgottenPassword");
