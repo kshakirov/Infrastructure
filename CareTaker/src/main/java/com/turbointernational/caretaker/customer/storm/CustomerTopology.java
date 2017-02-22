@@ -32,7 +32,7 @@ public class CustomerTopology {
         builder.setBolt("mailPassword",
                 new CustomerMailBolt(System.getProperty("admin_email"), System.getProperty("admin_email_password"),
                         System.getProperty("admin_smtp"), System.getProperty("hostDnsName")), 1)
-                .shuffleGrouping("forgotten", "forgottenPassword");
+                .shuffleGrouping("forgotten", "forgottenPassword").shuffleGrouping("forgotten", "newUser");
         builder.setBolt("messageLog",  new MessageLogBolt(System.getProperty("turboHost"),
                         System.getProperty("turboHostPort"), System.getProperty("token")), 1)
                 .shuffleGrouping("mailPassword", "forgottenPassword");

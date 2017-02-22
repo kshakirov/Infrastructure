@@ -18,7 +18,7 @@ public class SpoutUtils {
         return ((String) message.get("action")).equalsIgnoreCase("reset");
     }
     public static boolean isNewUser(JSONObject message){
-        return ((String) message.get("action")).equalsIgnoreCase("new_user");
+        return ((String) message.get("action")).equalsIgnoreCase("new");
     }
 
     public static String getEmailAddress (JSONObject message){

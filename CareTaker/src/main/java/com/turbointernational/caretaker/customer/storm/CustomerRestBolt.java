@@ -1,8 +1,5 @@
 package com.turbointernational.caretaker.customer.storm;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
-import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.turbointernational.caretaker.customer.auxillary.RestUtils;
 import org.apache.storm.task.TopologyContext;
@@ -12,8 +9,6 @@ import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +20,7 @@ import java.util.Map;
  */
 public class CustomerRestBolt extends BaseBasicBolt {
     private static final Logger LOG = LoggerFactory.getLogger(CustomerRestBolt.class);
-    private String url = "/admin/customer/password/reset/";
+
     private   String turboHost;
     private   String turboHostPort;
     private String token;
@@ -49,14 +44,16 @@ public class CustomerRestBolt extends BaseBasicBolt {
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String streamId = tuple.getSourceStreamId();
        if(streamId.equalsIgnoreCase("forgottenPassword")){
-           processForgottenPassword(tuple, collector);
+           String url = "/admin/customer/password/reset/";
+           processUserPassword(tuple, collector, url, "forgottenPassword");
        }else if(streamId.equalsIgnoreCase("newUser")){
-
+           String url = "/admin/customer/new/";
+           processUserPassword(tuple, collector, url, "newUser");
        }
 
     }
 
-    private void processForgottenPassword(Tuple tuple, BasicOutputCollector collector){
+    private void processUserPassword(Tuple tuple, BasicOutputCollector collector, String url, String streamId){
         String mail_address = tuple.getString(0);
         String password = null;
         url = turboHost + url;
@@ -64,7 +61,7 @@ public class CustomerRestBolt extends BaseBasicBolt {
             password = RestUtils.preparePassToEmail(mail_address, url, bearer);
             if (password != null) {
                 LOG.info("Emitting password " + password + " for email " + mail_address);
-                collector.emit("forgottenPassword", new Values(mail_address, password));
+                collector.emit(streamId, new Values(mail_address, password));
             } else {
                 LOG.info("There is no User with Email " + mail_address);
             }
@@ -75,19 +72,11 @@ public class CustomerRestBolt extends BaseBasicBolt {
         }
     }
 
-    private void processNewUser(){
-
-    }
-
-
-
-
-
-
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
         declarer.declareStream("forgottenPassword", new Fields("mail", "password"));
+        declarer.declareStream("newUser", new Fields("mail", "password"));
     }
 }

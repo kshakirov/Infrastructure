@@ -26,7 +26,7 @@ public class RestUtils {
         return  bearer.concat(token);
     }
 
-    public static String preparePassToEmail(String mail_address, String url, String bearer) throws UnirestException, ParseException {
+    private static JSONObject sendRestQuery(String mail_address, String url, String bearer) throws UnirestException, ParseException {
         HttpResponse<JsonNode> customerResponse = null;
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("email", mail_address);
@@ -38,6 +38,11 @@ public class RestUtils {
                 .body(jsonObject.toJSONString()).asJson();
         JSONParser parser = new JSONParser();
         JSONObject response = (JSONObject) parser.parse(customerResponse.getBody().toString());
+        return  response;
+    }
+
+    public static String preparePassToEmail(String mail_address, String url, String bearer) throws UnirestException, ParseException {
+        JSONObject response = sendRestQuery(mail_address, url, bearer);
         return getPasswordOrFail(response);
     }
 
