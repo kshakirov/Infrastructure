@@ -20,7 +20,6 @@ public class QueuePublisher {
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
             String message = "kshakirov@zoral.com.ua";
             channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
-            System.out.println(" [x] Sent '" + message + "'");
         } catch (Exception e) {
             e.printStackTrace();
         }

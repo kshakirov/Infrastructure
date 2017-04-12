@@ -36,7 +36,6 @@ public class QueueClient {
             channel.basicConsume(QUEUE_NAME, false, consumer);
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
             String message = new String(delivery.getBody());
-            System.out.println(message);
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), true);
             //channel.close();
             //connection.close();

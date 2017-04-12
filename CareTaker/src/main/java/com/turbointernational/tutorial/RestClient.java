@@ -17,7 +17,6 @@ public class RestClient {
 
         JSONObject ob = new JSONObject();
         ob.put("email","kshakirov@zoral.com.ua");
-        System.out.println(ob.toJSONString());
         HttpResponse<JsonNode> password_data = Unirest.put("http://localhost:4700/admin/customer/password/reset/")
 
                 .header("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1MDc0NjA0NzUsImlhdCI6MTQ4NTg2MDQ3NSwiaXNzIjoiem9yYWwuY29tIiwic2NvcGVzIjpbInZpZXdfcHJpY2VzIl0sImN1c3RvbWVyIjp7ImlkIjo0ODcsImdyb3VwIjoiRSIsIm5hbWUiOiJLaXJpbGwgU2hha2lyb3YifX0.eO_Nix-jDxgF_6QezL5MSJcMg9lAFWwy878dZ9Fyr_c")
@@ -30,6 +29,5 @@ public class RestClient {
         JSONObject jsonObject = (JSONObject) obj;
 
 
-        System.out.println(jsonObject);
     }
 }

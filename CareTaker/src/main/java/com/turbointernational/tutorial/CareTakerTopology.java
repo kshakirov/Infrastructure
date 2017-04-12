@@ -16,7 +16,6 @@ public class CareTakerTopology
     public static void main( String[] args )
     {
 
-        System.out.println( "Hello World!" );
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new RandomSentenceSpout(), 5);
 

@@ -16,6 +16,5 @@ public class HtmlMaker {
                 .with("server", "localhost.com");
 
         String html = template.render(model);
-        System.out.println(html);
     }
 }
