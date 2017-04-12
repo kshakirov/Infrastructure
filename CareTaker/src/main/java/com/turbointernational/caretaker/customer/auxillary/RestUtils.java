@@ -41,6 +41,27 @@ public class RestUtils {
         return  response;
     }
 
+    private static JSONObject sendGetQuery(String url, String bearer) throws UnirestException, ParseException {
+        HttpResponse<JsonNode> customerResponse = null;
+        JSONObject jsonObject = new JSONObject();
+        String path  = "http://" + url;
+        customerResponse = Unirest.get(path)
+                .header("Authorization", bearer)
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .asJson();
+        JSONParser parser = new JSONParser();
+        JSONObject response = (JSONObject) parser.parse(customerResponse.getBody().toString());
+        return  response;
+    }
+
+
+
+    public static String getTemplate(String url, String beared) throws ParseException, UnirestException{
+        JSONObject response = sendGetQuery(url,beared);
+        return (String) response.get("file");
+    }
+
     public static String preparePassToEmail(String mail_address, String url, String bearer) throws UnirestException, ParseException {
         JSONObject response = sendRestQuery(mail_address, url, bearer);
         return getPasswordOrFail(response);

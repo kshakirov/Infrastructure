@@ -13,6 +13,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,6 +26,14 @@ public class CustomerRestBolt extends BaseBasicBolt {
     private   String turboHostPort;
     private String token;
     private   String bearer = "Bearer ";
+    private String templateFileUrl = "/admin/template/forgotten_password.twig";
+
+    private HashMap<String,String> prepareTuple(String password, String template){
+        HashMap<String,String> tuple = new HashMap<String, String>();
+        tuple.put("password", password);
+        tuple.put("template", template);
+        return  tuple;
+    }
 
     public CustomerRestBolt(String turboHost, String turboHostPort, String  token){
         this.turboHost =turboHost;
@@ -60,8 +69,10 @@ public class CustomerRestBolt extends BaseBasicBolt {
         try {
             password = RestUtils.preparePassToEmail(mail_address, url, bearer);
             if (password != null) {
+                String template = RestUtils.getTemplate(turboHost + templateFileUrl, bearer);
+                HashMap<String,String> tpl = prepareTuple(password, template);
                 LOG.info("Emitting password " + password + " for email " + mail_address);
-                collector.emit(streamId, new Values(mail_address, password));
+                collector.emit(streamId, new Values(mail_address, tpl));
             } else {
                 LOG.info("There is no User with Email " + mail_address);
             }

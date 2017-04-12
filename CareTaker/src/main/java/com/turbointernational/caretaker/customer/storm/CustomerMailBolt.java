@@ -50,13 +50,13 @@ public class CustomerMailBolt extends BaseBasicBolt {
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String emailAddress = tuple.getString(0);
-        String password = tuple.getString(1);
-        String emailHtmlBody = prepareEmaiHtmlBody(emailAddress, password, hostDnsName);
+        HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
+        String emailHtmlBody = prepareEmailHtmlBody(emailAddress, tpl, hostDnsName);
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
         LOG.info("Emitting  " + email);
-        collector.emit("forgottenPassword", new Values(emailAddress, password));
+        collector.emit("forgottenPassword", new Values(emailAddress, tpl.get("password")));
     }
 
     private Email prepareEmail(String emailAddress, String emailHtmlBody) {
@@ -69,11 +69,11 @@ public class CustomerMailBolt extends BaseBasicBolt {
         return email;
     }
 
-    private String prepareEmaiHtmlBody(String emailAddress, String password, String server){
-        JtwigTemplate template = JtwigTemplate.classpathTemplate("templates/forgotten_password.twig");
+    private String prepareEmailHtmlBody(String emailAddress, HashMap<String,String> tpl, String server){
+        JtwigTemplate template = JtwigTemplate.inlineTemplate(tpl.get("template"));
         JtwigModel model = JtwigModel.newModel()
                 .with("email", emailAddress)
-                .with("password", password)
+                .with("password", tpl.get("password"))
                 .with("server", server);
 
         return  template.render(model);
