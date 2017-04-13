@@ -1,6 +1,7 @@
 package com.turbointernational.caretaker.customer.storm;
 
 
+import com.turbointernational.caretaker.customer.auxillary.BoltUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -8,8 +9,6 @@ import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.jtwig.JtwigModel;
-import org.jtwig.JtwigTemplate;
 import org.simplejavamail.email.Email;
 import org.simplejavamail.mailer.Mailer;
 import org.simplejavamail.mailer.config.TransportStrategy;
@@ -45,16 +44,36 @@ public class CustomerMailBolt extends BaseBasicBolt {
                 TransportStrategy.SMTP_TLS);
     }
 
-    @Override
-    public void execute(Tuple tuple, BasicOutputCollector collector) {
+    private void sendOrderMailAndGo(Tuple tuple, BasicOutputCollector collector){
         String emailAddress = tuple.getString(0);
-        HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
-        String emailHtmlBody = (String) tpl.get("template");
+        String emailHtmlBody = tuple.getString(1);
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
-        LOG.info("Emitting  " + email);
-        collector.emit("forgottenPassword", new Values(emailAddress, tpl.get("password")));
+        collector.emit("order", new Values(emailAddress, tuple.getInteger(1)));
+    }
+
+    private void sendPasswordMailAndGo(Tuple tuple, BasicOutputCollector collector){
+        String emailAddress = tuple.getString(0);
+        HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
+        String emailHtmlBody = (String) tpl.get("template");
+        String password = (String) tpl.get("password");
+        Email email = prepareEmail(emailAddress, emailHtmlBody);
+        mailer.validate(email);
+        mailer.sendMail(email);
+        collector.emit("forgottenPassword", new Values(emailAddress, password));
+    }
+
+    @Override
+    public void execute(Tuple tuple, BasicOutputCollector collector) {
+        String streamId = tuple.getSourceStreamId();
+        if(BoltUtils.isOrder(streamId)){
+            sendOrderMailAndGo(tuple, collector);
+        }else {
+            sendPasswordMailAndGo(tuple, collector);
+        }
+
+
     }
 
     private Email prepareEmail(String emailAddress, String emailHtmlBody) {

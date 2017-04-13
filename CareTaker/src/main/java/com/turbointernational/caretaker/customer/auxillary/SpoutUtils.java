@@ -21,6 +21,10 @@ public class SpoutUtils {
         return ((String) message.get("action")).equalsIgnoreCase("new");
     }
 
+    public static boolean isOrder(JSONObject message){
+        return ((String) message.get("action")).equalsIgnoreCase("order");
+    }
+
     public static String getEmailAddress (JSONObject message){
         return (String) message.get("email");
     }

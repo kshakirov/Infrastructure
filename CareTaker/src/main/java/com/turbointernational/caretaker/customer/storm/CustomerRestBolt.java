@@ -1,6 +1,7 @@
 package com.turbointernational.caretaker.customer.storm;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.turbointernational.caretaker.customer.auxillary.BoltUtils;
 import com.turbointernational.caretaker.customer.auxillary.RestUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.BasicOutputCollector;
@@ -52,12 +53,14 @@ public class CustomerRestBolt extends BaseBasicBolt {
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String streamId = tuple.getSourceStreamId();
-       if(streamId.equalsIgnoreCase("forgottenPassword")){
+       if(BoltUtils.isForgottenPassword(streamId)){
            String url = "/admin/customer/password/reset/";
            processUserPassword(tuple, collector, url, "forgottenPassword");
-       }else if(streamId.equalsIgnoreCase("newUser")){
+       }else if(BoltUtils.isNewUser(streamId)){
            String url = "/admin/customer/new/";
            processUserPassword(tuple, collector, url, "newUser");
+       }else if(BoltUtils.isOrder(streamId)){
+            prepareOrderMessage(tuple, collector, streamId);
        }
 
     }
@@ -79,6 +82,21 @@ public class CustomerRestBolt extends BaseBasicBolt {
         } catch (UnirestException e) {
             e.printStackTrace();
         } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void prepareOrderMessage(Tuple tuple, BasicOutputCollector collector, String streamId){
+        Integer orderId = tuple.getInteger(1);
+        String email = tuple.getString(0);
+        String url = turboHost + "/admin/template/process";
+        try {
+            String template = RestUtils.getOrderTemplate(orderId,url,bearer);
+            LOG.info("Emitting order " + orderId + " for email " + email);
+            collector.emit(streamId, new Values(orderId, email));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (UnirestException e) {
             e.printStackTrace();
         }
     }

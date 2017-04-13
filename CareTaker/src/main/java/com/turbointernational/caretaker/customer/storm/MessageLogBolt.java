@@ -4,6 +4,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.turbointernational.caretaker.customer.auxillary.BoltUtils;
 import com.turbointernational.caretaker.customer.auxillary.RestUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.BasicOutputCollector;
@@ -45,10 +46,16 @@ public class MessageLogBolt extends BaseBasicBolt {
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
+        String streamId = tuple.getSourceStreamId();
         String emailAddress = tuple.getString(0);
-        String password = tuple.getString(1);
+        String message = "";
+        if(BoltUtils.isOrder(streamId)){
+            message = "Order [" + tuple.getInteger(1) + "] sent";
+        }else{
+            message = tuple.getString(1);
+        }
         try {
-            commitMessageLog(emailAddress, password);
+            commitMessageLog(emailAddress, message);
             LOG.info("Added Message Log");
         } catch (UnirestException e) {
             e.printStackTrace();

@@ -79,6 +79,9 @@ public class RabbitSpout extends BaseRichSpout
             } else if (SpoutUtils.isNewUser(message)) {
                 LOG.info("Emitting new user email: " + (String) message.get("email"));
                 _collector.emit("newUser", new Values(message.get("email")));
+            } else if(SpoutUtils.isOrder(message)){
+                LOG.info("Emitting new order email: " + (String) message.get("orderId"));
+                _collector.emit("order", new Values(message.get("email"), message.get("orderId")));
             }
 
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
@@ -119,6 +122,7 @@ public class RabbitSpout extends BaseRichSpout
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declareStream("forgottenPassword", new Fields("email"));
         declarer.declareStream("newUser", new Fields("newUserEmail"));
+        declarer.declareStream("order", new Fields("orderId"));
     }
 
 
