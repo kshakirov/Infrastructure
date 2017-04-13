@@ -41,28 +41,39 @@ public class RestUtils {
         return  response;
     }
 
-    private static JSONObject sendGetQuery(String url, String bearer) throws UnirestException, ParseException {
+
+    private static JSONObject sendPostRestQuery(JSONObject payload, String url, String bearer) throws UnirestException, ParseException {
         HttpResponse<JsonNode> customerResponse = null;
-        JSONObject jsonObject = new JSONObject();
         String path  = "http://" + url;
-        customerResponse = Unirest.get(path)
+        customerResponse = Unirest.post(path)
                 .header("Authorization", bearer)
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
-                .asJson();
+                .body(payload.toJSONString()).asJson();
         JSONParser parser = new JSONParser();
         JSONObject response = (JSONObject) parser.parse(customerResponse.getBody().toString());
         return  response;
     }
 
+   private static JSONObject preparePostQuery(String email, String password, String url, String bearer) throws UnirestException, ParseException{
+       JSONObject payload = new JSONObject();
+       payload.put("password",password);
+       payload.put("email", email);
+       payload.put("action", "forgotten_password");
+       return payload;
+   }
 
 
-    public static String getTemplate(String url, String beared) throws ParseException, UnirestException{
-        JSONObject response = sendGetQuery(url,beared);
+
+    public static String getTemplate(String email, String password, String url, String bearer) throws ParseException, UnirestException{
+        JSONObject query = preparePostQuery(email, password,url,bearer);
+        JSONObject response = sendPostRestQuery(query, url, bearer);
         return (String) response.get("file");
     }
 
-    public static String preparePassToEmail(String mail_address, String url, String bearer) throws UnirestException, ParseException {
+    public static String resetPassword(String mail_address, String url, String bearer) throws UnirestException, ParseException {
+        JSONObject payload = new JSONObject();
+        payload.put("email", mail_address);
         JSONObject response = sendRestQuery(mail_address, url, bearer);
         return getPasswordOrFail(response);
     }

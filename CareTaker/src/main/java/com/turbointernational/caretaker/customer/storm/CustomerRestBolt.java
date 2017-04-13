@@ -26,7 +26,7 @@ public class CustomerRestBolt extends BaseBasicBolt {
     private   String turboHostPort;
     private String token;
     private   String bearer = "Bearer ";
-    private String templateFileUrl = "/admin/template/forgotten_password.twig";
+    private String templateFileUrl = "/admin/template/process";
 
     private HashMap<String,String> prepareTuple(String password, String template){
         HashMap<String,String> tuple = new HashMap<String, String>();
@@ -67,9 +67,9 @@ public class CustomerRestBolt extends BaseBasicBolt {
         String password = null;
         url = turboHost + url;
         try {
-            password = RestUtils.preparePassToEmail(mail_address, url, bearer);
+            password = RestUtils.resetPassword(mail_address, url, bearer);
             if (password != null) {
-                String template = RestUtils.getTemplate(turboHost + templateFileUrl, bearer);
+                String template = RestUtils.getTemplate(mail_address, password, turboHost + templateFileUrl, bearer);
                 HashMap<String,String> tpl = prepareTuple(password, template);
                 LOG.info("Emitting password " + password + " for email " + mail_address);
                 collector.emit(streamId, new Values(mail_address, tpl));

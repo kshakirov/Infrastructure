@@ -30,13 +30,11 @@ public class CustomerMailBolt extends BaseBasicBolt {
     private  String admin_email;
     private  String admin_email_password;
     private String admin_smtp;
-    private String hostDnsName;
 
     public CustomerMailBolt(String admin_email, String admin_email_password, String admin_smtp, String hostDnsName){
         this.admin_email = admin_email;
         this.admin_email_password = admin_email_password;
         this.admin_smtp = admin_smtp;
-        this.hostDnsName = hostDnsName;
     }
 
     @Override
@@ -51,7 +49,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String emailAddress = tuple.getString(0);
         HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
-        String emailHtmlBody = prepareEmailHtmlBody(emailAddress, tpl, hostDnsName);
+        String emailHtmlBody = (String) tpl.get("template");
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
@@ -69,15 +67,6 @@ public class CustomerMailBolt extends BaseBasicBolt {
         return email;
     }
 
-    private String prepareEmailHtmlBody(String emailAddress, HashMap<String,String> tpl, String server){
-        JtwigTemplate template = JtwigTemplate.inlineTemplate(tpl.get("template"));
-        JtwigModel model = JtwigModel.newModel()
-                .with("email", emailAddress)
-                .with("password", tpl.get("password"))
-                .with("server", server);
-
-        return  template.render(model);
-    }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
