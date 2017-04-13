@@ -26,21 +26,6 @@ public class RestUtils {
         return  bearer.concat(token);
     }
 
-    private static JSONObject sendRestQuery(String mail_address, String url, String bearer) throws UnirestException, ParseException {
-        HttpResponse<JsonNode> customerResponse = null;
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("email", mail_address);
-        String path  = "http://" + url;
-        customerResponse = Unirest.put(path)
-                .header("Authorization", bearer)
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(jsonObject.toJSONString()).asJson();
-        JSONParser parser = new JSONParser();
-        JSONObject response = (JSONObject) parser.parse(customerResponse.getBody().toString());
-        return  response;
-    }
-
 
     private static JSONObject sendPostRestQuery(JSONObject payload, String url, String bearer) throws UnirestException, ParseException {
         HttpResponse<JsonNode> customerResponse = null;
@@ -55,7 +40,7 @@ public class RestUtils {
         return  response;
     }
 
-   private static JSONObject preparePostQuery(String email, String password, String url, String bearer) throws UnirestException, ParseException{
+   private static JSONObject preparePostQuery(String email, String password, String url, String bearer) {
        JSONObject payload = new JSONObject();
        payload.put("password",password);
        payload.put("email", email);
@@ -74,7 +59,7 @@ public class RestUtils {
     public static String resetPassword(String mail_address, String url, String bearer) throws UnirestException, ParseException {
         JSONObject payload = new JSONObject();
         payload.put("email", mail_address);
-        JSONObject response = sendRestQuery(mail_address, url, bearer);
+        JSONObject response = sendPostRestQuery(payload,url,bearer);
         return getPasswordOrFail(response);
     }
 
