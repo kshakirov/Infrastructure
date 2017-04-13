@@ -82,8 +82,8 @@ public class RestUtils {
         return null;
     }
 
-    public static String getMessageLogPath(){
-        return "/admin/message/";
+    public static void commitLog(JSONObject payload, String url, String bearer) throws  UnirestException, ParseException{
+        sendPostRestQuery(payload,url,bearer );
     }
 
 }

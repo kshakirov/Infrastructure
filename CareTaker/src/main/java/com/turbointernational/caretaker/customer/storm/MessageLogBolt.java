@@ -31,6 +31,19 @@ public class MessageLogBolt extends BaseBasicBolt {
     private String token;
     private   String bearer;
 
+
+    private String getMessageLogPath(){
+        return "/admin/message/";
+    }
+
+    private String createForgottenPassMessage(Tuple tuple){
+        return  "Password [" + tuple.getString(1) + "] reset and sent";
+    }
+
+    private String creatOrderMessage(Tuple tuple){
+        return  "Order [" + tuple.getInteger(1) + "] sent";
+    }
+
     public MessageLogBolt(String turboHost, String turboHostPort, String token){
         this.turboHost = turboHost;
         this.turboHostPort = turboHostPort;
@@ -41,7 +54,6 @@ public class MessageLogBolt extends BaseBasicBolt {
     public void prepare(Map conf, TopologyContext context){
         turboHost = RestUtils.getTurboHost(turboHost, turboHostPort);
         bearer = RestUtils.getBearer(bearer, token);
-        url = RestUtils.getMessageLogPath();
     }
 
     @Override
@@ -50,9 +62,9 @@ public class MessageLogBolt extends BaseBasicBolt {
         String emailAddress = tuple.getString(0);
         String message = "";
         if(BoltUtils.isOrder(streamId)){
-            message = "Order [" + tuple.getInteger(1) + "] sent";
+            message = creatOrderMessage(tuple);
         }else{
-            message = tuple.getString(1);
+            message = createForgottenPassMessage(tuple);
         }
         try {
             commitMessageLog(emailAddress, message);
@@ -69,21 +81,17 @@ public class MessageLogBolt extends BaseBasicBolt {
         declarer.declareStream("forgottenPassword", new Fields("mail", "password"));
     }
 
-    private JSONObject preparePayload(String emailAddress, String password){
+    private JSONObject preparePayload(String emailAddress, String message){
         JSONObject payload = new JSONObject();
         payload.put("email", emailAddress);
-        payload.put("password", password);
+        payload.put("message", message);
         return  payload;
     }
 
     private void commitMessageLog(String emailAddress, String password) throws UnirestException, ParseException {
         HttpResponse<JsonNode> customerResponse = null;
         JSONObject payload = preparePayload(emailAddress, password);
-        String path  = "http://" + turboHost + url;
-        customerResponse = Unirest.post(path)
-                .header("Authorization", bearer)
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(payload.toJSONString()).asJson();
+        String url = turboHost + getMessageLogPath();
+        RestUtils.commitLog(payload, url, bearer);
     }
 }
