@@ -36,6 +36,13 @@ public class CustomerRestBolt extends BaseBasicBolt {
         return  tuple;
     }
 
+    private HashMap<String,Object> prepareOrderTuple(Long orderId, String template){
+        HashMap<String,Object> tuple = new HashMap<String, Object>();
+        tuple.put("order_id", orderId);
+        tuple.put("template", template);
+        return  tuple;
+    }
+
     public CustomerRestBolt(String turboHost, String turboHostPort, String  token){
         this.turboHost =turboHost;
         this.turboHostPort = turboHostPort;
@@ -87,13 +94,14 @@ public class CustomerRestBolt extends BaseBasicBolt {
     }
 
     private void prepareOrderMessage(Tuple tuple, BasicOutputCollector collector, String streamId){
-        Integer orderId = tuple.getInteger(1);
+        Long orderId = tuple.getLong(1);
         String email = tuple.getString(0);
         String url = turboHost + "/admin/template/process";
         try {
             String template = RestUtils.getOrderTemplate(orderId,url,bearer);
+            HashMap<String,Object> tpl = prepareOrderTuple(orderId, template);
             LOG.info("Emitting order " + orderId + " for email " + email);
-            collector.emit(streamId, new Values(orderId, email));
+            collector.emit(streamId, new Values(email, tpl));
         } catch (ParseException e) {
             e.printStackTrace();
         } catch (UnirestException e) {
@@ -107,5 +115,6 @@ public class CustomerRestBolt extends BaseBasicBolt {
 
         declarer.declareStream("forgottenPassword", new Fields("mail", "password"));
         declarer.declareStream("newUser", new Fields("mail", "password"));
+        declarer.declareStream("order", new Fields("email", "order_id"));
     }
 }

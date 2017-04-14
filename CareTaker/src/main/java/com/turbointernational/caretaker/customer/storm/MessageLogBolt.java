@@ -37,11 +37,11 @@ public class MessageLogBolt extends BaseBasicBolt {
     }
 
     private String createForgottenPassMessage(Tuple tuple){
-        return  "Password [" + tuple.getString(1) + "] reset and sent";
+        return  "Customer [" +  tuple.getString(0)   +  "] Password [" + tuple.getString(1) + "] Reset and Sent";
     }
 
     private String creatOrderMessage(Tuple tuple){
-        return  "Order [" + tuple.getInteger(1) + "] sent";
+        return  "Order [" + tuple.getLong(1).toString() + "] sent";
     }
 
     public MessageLogBolt(String turboHost, String turboHostPort, String token){

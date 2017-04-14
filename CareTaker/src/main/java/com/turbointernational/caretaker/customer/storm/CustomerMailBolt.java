@@ -45,12 +45,14 @@ public class CustomerMailBolt extends BaseBasicBolt {
     }
 
     private void sendOrderMailAndGo(Tuple tuple, BasicOutputCollector collector){
+        HashMap tpl = (HashMap<String,Object>) tuple.getValue(1);
         String emailAddress = tuple.getString(0);
-        String emailHtmlBody = tuple.getString(1);
+        Long orderId = (Long) tpl.get("order_id");
+        String emailHtmlBody = (String) tpl.get("template");
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
-        collector.emit("order", new Values(emailAddress, tuple.getInteger(1)));
+        collector.emit("order", new Values(emailAddress, orderId));
     }
 
     private void sendPasswordMailAndGo(Tuple tuple, BasicOutputCollector collector){
@@ -91,6 +93,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
         declarer.declareStream("forgottenPassword", new Fields("email", "passowrd"));
+        declarer.declareStream("order", new Fields("email", "orderId"));
     }
 }
 

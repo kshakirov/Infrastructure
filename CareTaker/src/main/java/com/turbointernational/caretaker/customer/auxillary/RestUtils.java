@@ -56,9 +56,10 @@ public class RestUtils {
         return (String) response.get("file");
     }
 
-    public static String getOrderTemplate(Integer orderId, String url, String bearer) throws ParseException, UnirestException{
+    public static String getOrderTemplate(Long orderId, String url, String bearer) throws ParseException, UnirestException{
         JSONObject payload = new JSONObject();
-        payload.put("orderId", orderId);
+        payload.put("order_id", orderId);
+        payload.put("action", "order");
         JSONObject response = sendPostRestQuery(payload, url, bearer);
         return (String) response.get("file");
     }
