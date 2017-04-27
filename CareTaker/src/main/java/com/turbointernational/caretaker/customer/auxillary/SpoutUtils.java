@@ -29,6 +29,14 @@ public class SpoutUtils {
         return (String) message.get("email");
     }
 
+    public static String getMessageId(JSONObject message){
+        return (String) message.get("id");
+    }
+
+    public static Long getOrderId (JSONObject message){
+        return (Long) message.get("order_id");
+    }
+
 
 
 

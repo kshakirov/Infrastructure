@@ -29,18 +29,13 @@ public class CustomerRestBolt extends BaseBasicBolt {
     private   String bearer = "Bearer ";
     private String templateFileUrl = "/admin/template/process";
 
-    private HashMap<String,String> prepareTuple(String password, String template){
-        HashMap<String,String> tuple = new HashMap<String, String>();
+    private void prepareData(String password, String template, HashMap<String,Object> tuple) {
         tuple.put("password", password);
         tuple.put("template", template);
-        return  tuple;
     }
 
-    private HashMap<String,Object> prepareOrderTuple(Long orderId, String template){
-        HashMap<String,Object> tuple = new HashMap<String, Object>();
-        tuple.put("order_id", orderId);
+    private  void prepareOrderData(String template, HashMap tuple){
         tuple.put("template", template);
-        return  tuple;
     }
 
     public CustomerRestBolt(String turboHost, String turboHostPort, String  token){
@@ -75,14 +70,15 @@ public class CustomerRestBolt extends BaseBasicBolt {
     private void processUserPassword(Tuple tuple, BasicOutputCollector collector, String url, String streamId){
         String mail_address = tuple.getString(0);
         String password = null;
+        HashMap data = (HashMap) tuple.getValue(1);
         url = turboHost + url;
         try {
             password = RestUtils.resetPassword(mail_address, url, bearer);
             if (password != null) {
                 String template = RestUtils.getTemplate(mail_address, password, turboHost + templateFileUrl, bearer);
-                HashMap<String,String> tpl = prepareTuple(password, template);
+                prepareData(password, template, data);
                 LOG.info("Emitting password " + password + " for email " + mail_address);
-                collector.emit(streamId, new Values(mail_address, tpl));
+                collector.emit(streamId, new Values(mail_address, data));
             } else {
                 LOG.info("There is no User with Email " + mail_address);
             }
@@ -94,14 +90,15 @@ public class CustomerRestBolt extends BaseBasicBolt {
     }
 
     private void prepareOrderMessage(Tuple tuple, BasicOutputCollector collector, String streamId){
-        Long orderId = tuple.getLong(1);
         String email = tuple.getString(0);
+        HashMap data = (HashMap) tuple.getValue(1);
+        Long orderId = (Long) data.get("order_id");
         String url = turboHost + "/admin/template/process";
         try {
             String template = RestUtils.getOrderTemplate(orderId,url,bearer);
-            HashMap<String,Object> tpl = prepareOrderTuple(orderId, template);
+            prepareOrderData(template, data);
             LOG.info("Emitting order " + orderId + " for email " + email);
-            collector.emit(streamId, new Values(email, tpl));
+            collector.emit(streamId, new Values(email, data));
         } catch (ParseException e) {
             e.printStackTrace();
         } catch (UnirestException e) {
@@ -113,8 +110,8 @@ public class CustomerRestBolt extends BaseBasicBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-        declarer.declareStream("forgottenPassword", new Fields("mail", "password"));
-        declarer.declareStream("newUser", new Fields("mail", "password"));
-        declarer.declareStream("order", new Fields("email", "order_id"));
+        declarer.declareStream("forgottenPassword", new Fields("mail", "data"));
+        declarer.declareStream("newUser", new Fields("mail", "data"));
+        declarer.declareStream("order", new Fields("email", "data"));
     }
 }

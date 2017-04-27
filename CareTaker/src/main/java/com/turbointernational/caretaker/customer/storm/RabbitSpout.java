@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
@@ -75,13 +76,13 @@ public class RabbitSpout extends BaseRichSpout
             String emailAddress = SpoutUtils.getEmailAddress(message);
             if (SpoutUtils.isForgottenPassword(message)) {
                 LOG.info("Emitting forgotten email: " + (String) message.get("email"));
-                _collector.emit("forgottenPassword", new Values(message.get("email")));
+                _collector.emit("forgottenPassword", new Values(message.get("email"), createDataValue(message)));
             } else if (SpoutUtils.isNewUser(message)) {
-                LOG.info("Emitting new user email: " + (String) message.get("email"));
+                LOG.info("Emitting new user email: " + (String) message.get("email"),createDataValue(message));
                 _collector.emit("newUser", new Values(message.get("email")));
             } else if(SpoutUtils.isOrder(message)){
                 LOG.info("Emitting new order email: " + message.get("order_id").toString());
-                _collector.emit("order", new Values(message.get("email"), message.get("order_id")));
+                _collector.emit("order", new Values(message.get("email"), createOrderDataValue(message)));
             }
 
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
@@ -120,9 +121,24 @@ public class RabbitSpout extends BaseRichSpout
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("forgottenPassword", new Fields("email"));
-        declarer.declareStream("newUser", new Fields("newUserEmail"));
-        declarer.declareStream("order", new Fields("email", "orderId"));
+        declarer.declareStream("forgottenPassword", new Fields("email", "data"));
+        declarer.declareStream("newUser", new Fields("newUserEmail", "data"));
+        declarer.declareStream("order", new Fields("email", "data"));
+    }
+
+    private HashMap createDataValue(JSONObject message){
+        HashMap data =  new HashMap<String, Object>();
+        data.put("id", SpoutUtils.getMessageId(message));
+        return  data;
+
+    }
+
+    private HashMap createOrderDataValue(JSONObject message){
+        HashMap data =  new HashMap<String, Object>();
+        data.put("id", SpoutUtils.getMessageId(message));
+        data.put("order_id", SpoutUtils.getOrderId(message));
+        return  data;
+
     }
 
 

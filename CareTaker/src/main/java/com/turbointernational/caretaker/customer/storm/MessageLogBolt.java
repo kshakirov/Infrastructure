@@ -18,6 +18,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,12 +37,12 @@ public class MessageLogBolt extends BaseBasicBolt {
         return "/admin/message/";
     }
 
-    private String createForgottenPassMessage(Tuple tuple){
-        return  "Customer [" +  tuple.getString(0)   +  "] Password [" + tuple.getString(1) + "] Reset and Sent";
+    private String createForgottenPassMessage(Tuple tuple, HashMap data){
+        return  "Customer [" +  tuple.getString(0)   +  "] Password [" + data.get("password") + "] Reset and Sent";
     }
 
-    private String creatOrderMessage(Tuple tuple){
-        return  "Order [" + tuple.getLong(1).toString() + "] sent";
+    private String creatOrderMessage(HashMap data){
+        return  "Order [" + data.get("order_id").toString() + "] sent";
     }
 
     public MessageLogBolt(String turboHost, String turboHostPort, String token){
@@ -61,13 +62,14 @@ public class MessageLogBolt extends BaseBasicBolt {
         String streamId = tuple.getSourceStreamId();
         String emailAddress = tuple.getString(0);
         String message = "";
+        HashMap data = (HashMap) tuple.getValue(1);
         if(BoltUtils.isOrder(streamId)){
-            message = creatOrderMessage(tuple);
+            message = creatOrderMessage(data);
         }else{
-            message = createForgottenPassMessage(tuple);
+            message = createForgottenPassMessage(tuple, data);
         }
         try {
-            commitMessageLog(emailAddress, message);
+            commitMessageLog(emailAddress, message, data);
             LOG.info("Added Message Log");
         } catch (UnirestException e) {
             e.printStackTrace();
@@ -81,16 +83,18 @@ public class MessageLogBolt extends BaseBasicBolt {
         declarer.declareStream("forgottenPassword", new Fields("mail", "password"));
     }
 
-    private JSONObject preparePayload(String emailAddress, String message){
+    private JSONObject preparePayload(String emailAddress, String message, HashMap data){
         JSONObject payload = new JSONObject();
         payload.put("email", emailAddress);
         payload.put("message", message);
+        payload.put("status", "Success");
+        payload.put("id", (String) data.get("id"));
         return  payload;
     }
 
-    private void commitMessageLog(String emailAddress, String password) throws UnirestException, ParseException {
+    private void commitMessageLog(String emailAddress, String password, HashMap data) throws UnirestException, ParseException {
         HttpResponse<JsonNode> customerResponse = null;
-        JSONObject payload = preparePayload(emailAddress, password);
+        JSONObject payload = preparePayload(emailAddress, password, data);
         String url = turboHost + getMessageLogPath();
         RestUtils.commitLog(payload, url, bearer);
     }

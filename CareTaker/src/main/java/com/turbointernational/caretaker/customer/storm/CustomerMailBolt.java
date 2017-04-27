@@ -29,16 +29,18 @@ public class CustomerMailBolt extends BaseBasicBolt {
     private  String admin_email;
     private  String admin_email_password;
     private String admin_smtp;
+    private Integer admin_smtp_port;
 
-    public CustomerMailBolt(String admin_email, String admin_email_password, String admin_smtp, String hostDnsName){
+    public CustomerMailBolt(String admin_email, String admin_email_password, String admin_smtp, String admin_smtp_port){
         this.admin_email = admin_email;
         this.admin_email_password = admin_email_password;
         this.admin_smtp = admin_smtp;
+        this.admin_smtp_port = Integer.valueOf(admin_smtp_port);
     }
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
-        mailer = new Mailer(admin_smtp, 587,
+        mailer = new Mailer(admin_smtp, admin_smtp_port,
                 admin_email,
                 admin_email_password,
                 TransportStrategy.SMTP_TLS);
@@ -52,7 +54,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
-        collector.emit("order", new Values(emailAddress, orderId));
+        collector.emit("order", new Values(emailAddress, tpl));
     }
 
     private void sendPasswordMailAndGo(Tuple tuple, BasicOutputCollector collector){
@@ -63,7 +65,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
         Email email = prepareEmail(emailAddress, emailHtmlBody);
         mailer.validate(email);
         mailer.sendMail(email);
-        collector.emit("forgottenPassword", new Values(emailAddress, password));
+        collector.emit("forgottenPassword", new Values(emailAddress, tpl));
     }
 
     @Override
@@ -92,8 +94,8 @@ public class CustomerMailBolt extends BaseBasicBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-        declarer.declareStream("forgottenPassword", new Fields("email", "passowrd"));
-        declarer.declareStream("order", new Fields("email", "orderId"));
+        declarer.declareStream("forgottenPassword", new Fields("email", "data"));
+        declarer.declareStream("order", new Fields("email", "data"));
     }
 }
 
