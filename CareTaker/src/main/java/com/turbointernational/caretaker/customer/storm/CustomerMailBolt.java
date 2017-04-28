@@ -11,6 +11,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.simplejavamail.email.Email;
 import org.simplejavamail.mailer.Mailer;
+import org.simplejavamail.mailer.config.ServerConfig;
 import org.simplejavamail.mailer.config.TransportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +39,19 @@ public class CustomerMailBolt extends BaseBasicBolt {
         this.admin_smtp_port = Integer.valueOf(admin_smtp_port);
     }
 
+
+    private Mailer buildMailer(){
+        if (this.admin_email_password == null){
+            return new Mailer(new ServerConfig(this.admin_smtp, this.admin_smtp_port) );
+        }else{
+            return  new Mailer(admin_smtp, admin_smtp_port, admin_email, admin_email_password,
+                    TransportStrategy.SMTP_TLS);
+        }
+    }
+
     @Override
     public void prepare(Map conf, TopologyContext context) {
-        mailer = new Mailer(admin_smtp, admin_smtp_port,
-                admin_email,
-                admin_email_password,
-                TransportStrategy.SMTP_TLS);
+        mailer = buildMailer();
     }
 
     private void sendOrderMailAndGo(Tuple tuple, BasicOutputCollector collector){
