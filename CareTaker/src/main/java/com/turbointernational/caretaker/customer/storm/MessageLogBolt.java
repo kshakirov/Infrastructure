@@ -41,6 +41,10 @@ public class MessageLogBolt extends BaseBasicBolt {
         return  "Customer [" +  tuple.getString(0)   +  "] Password [" + data.get("password") + "] Reset and Sent";
     }
 
+    private String createSentNotificationData(Tuple tuple, HashMap data){
+        return  "User [" +  tuple.getString(0)   +  "]  Sent Notification Data";
+    }
+
     private String creatOrderMessage(HashMap data){
         return  "Order [" + data.get("order_id").toString() + "] sent";
     }
@@ -65,7 +69,10 @@ public class MessageLogBolt extends BaseBasicBolt {
         HashMap data = (HashMap) tuple.getValue(1);
         if(BoltUtils.isOrder(streamId)){
             message = creatOrderMessage(data);
-        }else{
+        }else if(BoltUtils.isNotification(streamId)){
+            message = createSentNotificationData(tuple, data);
+        }
+        else{
             message = createForgottenPassMessage(tuple, data);
         }
         try {

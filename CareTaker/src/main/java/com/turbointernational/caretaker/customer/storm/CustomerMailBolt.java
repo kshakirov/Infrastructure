@@ -76,12 +76,27 @@ public class CustomerMailBolt extends BaseBasicBolt {
         collector.emit("forgottenPassword", new Values(emailAddress, tpl));
     }
 
+
+    private void sendNotificationAndGo(Tuple tuple, BasicOutputCollector collector){
+        String emailAddress = tuple.getString(0);
+        HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
+        String emailHtmlBody = (String) tpl.get("template");
+        Email email = prepareEmail(emailAddress, emailHtmlBody);
+        mailer.validate(email);
+        mailer.sendMail(email);
+        collector.emit("notification", new Values(emailAddress, tpl));
+    }
+
+
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String streamId = tuple.getSourceStreamId();
         if(BoltUtils.isOrder(streamId)){
             sendOrderMailAndGo(tuple, collector);
-        }else {
+        }else if(BoltUtils.isNotification(streamId)) {
+            sendNotificationAndGo(tuple, collector);
+        }
+        else {
             sendPasswordMailAndGo(tuple, collector);
         }
 
@@ -104,6 +119,7 @@ public class CustomerMailBolt extends BaseBasicBolt {
 
         declarer.declareStream("forgottenPassword", new Fields("email", "data"));
         declarer.declareStream("order", new Fields("email", "data"));
+        declarer.declareStream("notification", new Fields("email", "data"));
     }
 }
 

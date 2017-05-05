@@ -28,14 +28,17 @@ public class CustomerTopology {
         builder.setSpout("spout", new RabbitSpout(System.getProperty("rabbitHost")), 1);
         builder.setBolt("forgotten", new CustomerRestBolt(System.getProperty("turboHost"),
                         System.getProperty("turboHostPort"),System.getProperty("token")),
-                1).shuffleGrouping("spout", "forgottenPassword").shuffleGrouping("spout", "newUser").shuffleGrouping("spout", "order");
+                1).shuffleGrouping("spout", "forgottenPassword").shuffleGrouping("spout", "newUser").
+                shuffleGrouping("spout", "order").shuffleGrouping("spout", "notification");
         builder.setBolt("mailPassword",
                 new CustomerMailBolt(System.getProperty("admin_email"), System.getProperty("admin_email_password"),
                         System.getProperty("admin_smtp"), System.getProperty("admin_smtp_port")), 1)
-                .shuffleGrouping("forgotten", "forgottenPassword").shuffleGrouping("forgotten", "newUser").shuffleGrouping("forgotten", "order");
+                .shuffleGrouping("forgotten", "forgottenPassword").shuffleGrouping("forgotten", "newUser")
+                .shuffleGrouping("forgotten", "order").shuffleGrouping("forgotten","notification" );
         builder.setBolt("messageLog",  new MessageLogBolt(System.getProperty("turboHost"),
                         System.getProperty("turboHostPort"), System.getProperty("token")), 1)
-                .shuffleGrouping("mailPassword", "forgottenPassword").shuffleGrouping("mailPassword", "order");
+                .shuffleGrouping("mailPassword", "forgottenPassword").shuffleGrouping("mailPassword", "order")
+                .shuffleGrouping("mailPassword","notification");
         return builder.createTopology();
     }
 

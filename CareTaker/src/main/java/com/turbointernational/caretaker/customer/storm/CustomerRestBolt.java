@@ -38,6 +38,10 @@ public class CustomerRestBolt extends BaseBasicBolt {
         tuple.put("template", template);
     }
 
+    private  void prepareNotificationData(String template, HashMap tuple){
+        tuple.put("template", template);
+    }
+
     public CustomerRestBolt(String turboHost, String turboHostPort, String  token){
         this.turboHost =turboHost;
         this.turboHostPort = turboHostPort;
@@ -63,7 +67,10 @@ public class CustomerRestBolt extends BaseBasicBolt {
            processUserPassword(tuple, collector, url, "newUser");
        }else if(BoltUtils.isOrder(streamId)){
             prepareOrderMessage(tuple, collector, streamId);
+       }else if(BoltUtils.isNotification(streamId)){
+           prepareNotificationMessage(tuple, collector, streamId);
        }
+
 
     }
 
@@ -106,6 +113,22 @@ public class CustomerRestBolt extends BaseBasicBolt {
         }
     }
 
+    private void prepareNotificationMessage(Tuple tuple, BasicOutputCollector collector, String streamId){
+        String email = tuple.getString(0);
+        HashMap data = (HashMap) tuple.getValue(1);
+        String url = turboHost + "/admin/template/process";
+        try {
+            String template = RestUtils.getNotificationTemplate(data,url,bearer);
+            prepareNotificationData(template, data);
+            LOG.info("Emitting notification for email " + email);
+            collector.emit(streamId, new Values(email, data));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -113,5 +136,6 @@ public class CustomerRestBolt extends BaseBasicBolt {
         declarer.declareStream("forgottenPassword", new Fields("mail", "data"));
         declarer.declareStream("newUser", new Fields("mail", "data"));
         declarer.declareStream("order", new Fields("email", "data"));
+        declarer.declareStream("notification", new Fields("email", "data"));
     }
 }

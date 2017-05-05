@@ -24,6 +24,9 @@ public class SpoutUtils {
     public static boolean isOrder(JSONObject message){
         return ((String) message.get("action")).equalsIgnoreCase("order");
     }
+    public static boolean isNotification(JSONObject message){
+        return ((String) message.get("action")).equalsIgnoreCase("notification");
+    }
 
     public static String getEmailAddress (JSONObject message){
         return (String) message.get("email");
@@ -35,6 +38,9 @@ public class SpoutUtils {
 
     public static Long getOrderId (JSONObject message){
         return (Long) message.get("order_id");
+    }
+    public static Long getNotificationData (JSONObject message){
+        return (Long) message.get("notificationData");
     }
 
 

@@ -8,6 +8,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.util.HashMap;
+
 /**
  * Created by kshakirov on 2/14/17.
  */
@@ -60,6 +62,13 @@ public class RestUtils {
         JSONObject payload = new JSONObject();
         payload.put("order_id", orderId);
         payload.put("action", "order");
+        JSONObject response = sendPostRestQuery(payload, url, bearer);
+        return (String) response.get("file");
+    }
+
+    public static String getNotificationTemplate(HashMap notificationData, String url, String bearer) throws ParseException, UnirestException{
+        JSONObject payload = new JSONObject(notificationData);
+        //payload.put("notificationData", notificationData);
         JSONObject response = sendPostRestQuery(payload, url, bearer);
         return (String) response.get("file");
     }

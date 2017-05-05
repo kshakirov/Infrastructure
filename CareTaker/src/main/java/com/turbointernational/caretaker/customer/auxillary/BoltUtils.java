@@ -15,4 +15,7 @@ public class BoltUtils {
     public static boolean isOrder(String streamId){
         return streamId.equalsIgnoreCase("order");
     }
+    public static boolean isNotification(String streamId){
+        return streamId.equalsIgnoreCase("notification");
+    }
 }
