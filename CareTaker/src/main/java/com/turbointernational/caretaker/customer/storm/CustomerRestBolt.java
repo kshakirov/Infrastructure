@@ -10,6 +10,7 @@ import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,35 +24,34 @@ import java.util.Map;
 public class CustomerRestBolt extends BaseBasicBolt {
     private static final Logger LOG = LoggerFactory.getLogger(CustomerRestBolt.class);
 
-    private   String turboHost;
-    private   String turboHostPort;
+    private String turboHost;
+    private String turboHostPort;
     private String token;
-    private   String bearer = "Bearer ";
+    private String bearer = "Bearer ";
     private String templateFileUrl = "/admin/template/process";
 
-    private void prepareData(String password, String template, HashMap<String,Object> tuple) {
+    private void prepareData(JSONObject templateData, HashMap tuple) {
+        tuple.put("template", templateData.get("file"));
+        tuple.put("admin_email", templateData.get("admin_email"));
+        tuple.put("admin_name", templateData.get("admin_name"));
+    }
+
+
+    private void preparePasswordData(String password, JSONObject templateData, HashMap<String, Object> tuple) {
         tuple.put("password", password);
-        tuple.put("template", template);
+        prepareData(templateData, tuple);
     }
 
-    private  void prepareOrderData(String template, HashMap tuple){
-        tuple.put("template", template);
-    }
-
-    private  void prepareNotificationData(String template, HashMap tuple){
-        tuple.put("template", template);
-    }
-
-    public CustomerRestBolt(String turboHost, String turboHostPort, String  token){
-        this.turboHost =turboHost;
+    public CustomerRestBolt(String turboHost, String turboHostPort, String token) {
+        this.turboHost = turboHost;
         this.turboHostPort = turboHostPort;
         this.token = token;
     }
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
-        if (!turboHostPort.isEmpty()){
-             turboHost = turboHost.concat(":" + turboHostPort);
+        if (!turboHostPort.isEmpty()) {
+            turboHost = turboHost.concat(":" + turboHostPort);
         }
         bearer = bearer.concat(token);
     }
@@ -59,22 +59,22 @@ public class CustomerRestBolt extends BaseBasicBolt {
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String streamId = tuple.getSourceStreamId();
-       if(BoltUtils.isForgottenPassword(streamId)){
-           String url = "/admin/customer/password/reset/";
-           processUserPassword(tuple, collector, url, "forgottenPassword");
-       }else if(BoltUtils.isNewUser(streamId)){
-           String url = "/admin/customer/new/";
-           processUserPassword(tuple, collector, url, "newUser");
-       }else if(BoltUtils.isOrder(streamId)){
+        if (BoltUtils.isForgottenPassword(streamId)) {
+            String url = "/admin/customer/password/reset/";
+            processUserPassword(tuple, collector, url, "forgottenPassword");
+        } else if (BoltUtils.isNewUser(streamId)) {
+            String url = "/admin/customer/new/";
+            processUserPassword(tuple, collector, url, "newUser");
+        } else if (BoltUtils.isOrder(streamId)) {
             prepareOrderMessage(tuple, collector, streamId);
-       }else if(BoltUtils.isNotification(streamId)){
-           prepareNotificationMessage(tuple, collector, streamId);
-       }
+        } else if (BoltUtils.isNotification(streamId)) {
+            prepareNotificationMessage(tuple, collector, streamId);
+        }
 
 
     }
 
-    private void processUserPassword(Tuple tuple, BasicOutputCollector collector, String url, String streamId){
+    private void processUserPassword(Tuple tuple, BasicOutputCollector collector, String url, String streamId) {
         String mail_address = tuple.getString(0);
         String password = null;
         HashMap data = (HashMap) tuple.getValue(1);
@@ -82,8 +82,8 @@ public class CustomerRestBolt extends BaseBasicBolt {
         try {
             password = RestUtils.resetPassword(mail_address, url, bearer);
             if (password != null) {
-                String template = RestUtils.getTemplate(mail_address, password, turboHost + templateFileUrl, bearer);
-                prepareData(password, template, data);
+                JSONObject templateData = RestUtils.getTemplateData(mail_address, password, turboHost + templateFileUrl, bearer);
+                preparePasswordData(password, templateData, data);
                 LOG.info("Emitting password " + password + " for email " + mail_address);
                 collector.emit(streamId, new Values(mail_address, data));
             } else {
@@ -96,14 +96,14 @@ public class CustomerRestBolt extends BaseBasicBolt {
         }
     }
 
-    private void prepareOrderMessage(Tuple tuple, BasicOutputCollector collector, String streamId){
+    private void prepareOrderMessage(Tuple tuple, BasicOutputCollector collector, String streamId) {
         String email = tuple.getString(0);
         HashMap data = (HashMap) tuple.getValue(1);
         Long orderId = (Long) data.get("order_id");
         String url = turboHost + "/admin/template/process";
         try {
-            String template = RestUtils.getOrderTemplate(orderId,url,bearer);
-            prepareOrderData(template, data);
+            JSONObject templateData = RestUtils.getOrderTemplateData(orderId, url, bearer);
+            prepareData(templateData, data);
             LOG.info("Emitting order " + orderId + " for email " + email);
             collector.emit(streamId, new Values(email, data));
         } catch (ParseException e) {
@@ -113,13 +113,13 @@ public class CustomerRestBolt extends BaseBasicBolt {
         }
     }
 
-    private void prepareNotificationMessage(Tuple tuple, BasicOutputCollector collector, String streamId){
+    private void prepareNotificationMessage(Tuple tuple, BasicOutputCollector collector, String streamId) {
         String email = tuple.getString(0);
         HashMap data = (HashMap) tuple.getValue(1);
         String url = turboHost + "/admin/template/process";
         try {
-            String template = RestUtils.getNotificationTemplate(data,url,bearer);
-            prepareNotificationData(template, data);
+            JSONObject templateData = RestUtils.getNotificationTemplateData(data, url, bearer);
+            prepareData(templateData, data);
             LOG.info("Emitting notification for email " + email);
             collector.emit(streamId, new Values(email, data));
         } catch (ParseException e) {

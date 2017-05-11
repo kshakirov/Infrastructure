@@ -57,9 +57,9 @@ public class CustomerMailBolt extends BaseBasicBolt {
     private void sendOrderMailAndGo(Tuple tuple, BasicOutputCollector collector){
         HashMap tpl = (HashMap<String,Object>) tuple.getValue(1);
         String emailAddress = tuple.getString(0);
-        Long orderId = (Long) tpl.get("order_id");
         String emailHtmlBody = (String) tpl.get("template");
-        Email email = prepareEmail(emailAddress, emailHtmlBody);
+        Email email = prepareEmail(emailAddress, emailHtmlBody, (String) tpl.get("admin_email"),
+                (String) tpl.get("admin_name"));
         mailer.validate(email);
         mailer.sendMail(email);
         collector.emit("order", new Values(emailAddress, tpl));
@@ -69,8 +69,8 @@ public class CustomerMailBolt extends BaseBasicBolt {
         String emailAddress = tuple.getString(0);
         HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
         String emailHtmlBody = (String) tpl.get("template");
-        String password = (String) tpl.get("password");
-        Email email = prepareEmail(emailAddress, emailHtmlBody);
+        Email email = prepareEmail(emailAddress, emailHtmlBody, (String) tpl.get("admin_email"),
+                (String) tpl.get("admin_name"));
         mailer.validate(email);
         mailer.sendMail(email);
         collector.emit("forgottenPassword", new Values(emailAddress, tpl));
@@ -81,7 +81,8 @@ public class CustomerMailBolt extends BaseBasicBolt {
         String emailAddress = tuple.getString(0);
         HashMap tpl = (HashMap<String,String>) tuple.getValue(1);
         String emailHtmlBody = (String) tpl.get("template");
-        Email email = prepareEmail(emailAddress, emailHtmlBody);
+        Email email = prepareEmail(emailAddress, emailHtmlBody, (String) tpl.get("admin_email"),
+                (String) tpl.get("admin_name"));
         mailer.validate(email);
         mailer.sendMail(email);
         collector.emit("notification", new Values(emailAddress, tpl));
@@ -103,10 +104,10 @@ public class CustomerMailBolt extends BaseBasicBolt {
 
     }
 
-    private Email prepareEmail(String emailAddress, String emailHtmlBody) {
+    private Email prepareEmail(String emailAddress, String emailHtmlBody, String ad_email, String ad_name) {
         Email email = new Email();
-        email.setFromAddress("Admin", admin_email);
-        email.setReplyToAddress("Admin", admin_email);
+        email.setFromAddress(ad_name, ad_email);
+        email.setReplyToAddress(ad_name, ad_email);
         email.addRecipient("User", emailAddress, Message.RecipientType.TO);
         email.setSubject("TurboInternational");
         email.setTextHTML(emailHtmlBody);

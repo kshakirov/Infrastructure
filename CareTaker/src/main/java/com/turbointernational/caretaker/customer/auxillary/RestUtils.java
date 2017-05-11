@@ -52,25 +52,24 @@ public class RestUtils {
 
 
 
-    public static String getTemplate(String email, String password, String url, String bearer) throws ParseException, UnirestException{
+    public static JSONObject getTemplateData(String email, String password, String url, String bearer) throws ParseException, UnirestException{
         JSONObject query = preparePostQuery(email, password,url,bearer);
         JSONObject response = sendPostRestQuery(query, url, bearer);
-        return (String) response.get("file");
+        return  response;
     }
 
-    public static String getOrderTemplate(Long orderId, String url, String bearer) throws ParseException, UnirestException{
+    public static JSONObject getOrderTemplateData(Long orderId, String url, String bearer) throws ParseException, UnirestException{
         JSONObject payload = new JSONObject();
         payload.put("order_id", orderId);
         payload.put("action", "order");
         JSONObject response = sendPostRestQuery(payload, url, bearer);
-        return (String) response.get("file");
+        return response;
     }
 
-    public static String getNotificationTemplate(HashMap notificationData, String url, String bearer) throws ParseException, UnirestException{
+    public static JSONObject getNotificationTemplateData(HashMap notificationData, String url, String bearer) throws ParseException, UnirestException{
         JSONObject payload = new JSONObject(notificationData);
-        //payload.put("notificationData", notificationData);
         JSONObject response = sendPostRestQuery(payload, url, bearer);
-        return (String) response.get("file");
+        return  response;
     }
 
     public static String resetPassword(String mail_address, String url, String bearer) throws UnirestException, ParseException {
