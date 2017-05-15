@@ -34,6 +34,7 @@ public class CustomerRestBolt extends BaseBasicBolt {
         tuple.put("template", templateData.get("file"));
         tuple.put("admin_email", templateData.get("admin_email"));
         tuple.put("admin_name", templateData.get("admin_name"));
+        tuple.put("subject", templateData.get("subject"));
     }
 
 
