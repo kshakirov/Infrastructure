@@ -3,9 +3,9 @@ module TurboInternational
 
 
     def initialize
-      @addr_pattern = '192.168.'
-      @dns_server = '0.0.0.0'
-      @dns_port = 5300
+      @addr_pattern = '10.8.'
+      @dns_server = '10.8.0.4'
+      @dns_port = 53
     end
 
     def get_full_name name
