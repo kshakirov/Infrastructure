@@ -1,22 +1,32 @@
-class TurboDns
-  attr_reader :interfaces,:pattern,:upstream,:in
-  def read_table
-    YAML.load_file('data/table.yaml')
-  end
-  def initialize
-    @pattern = /.turbocluster/
-    @table = read_table
+module TurboInternational
+  class TurboDns
+    attr_reader :interfaces, :cluster_pattern, :upstream, :in, :set_pattern
 
-  end
+    def initialize
+      @cluster_pattern = /cluster/
+      @set_pattern = /set_dns/
+      @resolve_hash = {}
 
-  def return_address addr
-    if @table.key? addr
-      p addr
-      p @table[addr]
-      @table[addr]
     end
+
+    def normalize addr
+      normalized = addr.chop
+      normalized.chomp('.')
+    end
+
+    def return_address addr
+        normalized = normalize addr
+      if @resolve_hash.key? normalized
+        @resolve_hash[normalized]
+      end
+    end
+
+    def set_dns addr
+      parts = addr.split(':')
+      @resolve_hash[parts[1]] = parts[2].chomp('.')
+      "#{@resolve_hash[parts[1]]}"
+    end
+
+
   end
-
-
-
 end

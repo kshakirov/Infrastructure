@@ -1,0 +1,8 @@
+test:
+  dns_server: '127.0.0.1'
+  dns_port: 5300
+  addr_pattern: '192.168.'
+production:
+  dns_server: '10.229.95.209'
+  dns_port: 53
+  addr_pattern: '10.8.'

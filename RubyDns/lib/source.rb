@@ -1,4 +1,6 @@
 require 'rubydns'
 require 'timers'
 require 'yaml'
+require 'socket'
 require_relative 'src/turbo_dns'
+require_relative 'src/client'

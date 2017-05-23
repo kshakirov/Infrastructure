@@ -1,6 +1,6 @@
 require_relative '../lib/source'
 
-turbo_dns = TurboDns.new
+turbo_dns = TurboInternational::TurboDns.new
 
 
 INTERFACES = [
@@ -16,15 +16,13 @@ UPSTREAM = RubyDNS::Resolver.new([[:udp, "127.0.0.1", 53], [:tcp, "127.0.0.1", 5
 # Start the RubyDNS server
 RubyDNS::run_server(:listen => INTERFACES) do
   
-  match(turbo_dns.pattern, IN::A) do |transaction|
+  match(turbo_dns.set_pattern, IN::A) do |transaction|
+     turbo_dns.set_dns(transaction.query.question.first.first.to_s)
+  end
+
+  match(turbo_dns.cluster_pattern, IN::A) do |transaction|
     address = turbo_dns.return_address(transaction.query.question.first.first.to_s)
-    if not address.nil?
-      transaction.respond!(address)
-    else
-      otherwise do |transaction|
-        transaction.passthrough!(UPSTREAM)
-      end
-    end
+    transaction.respond!(address)
   end
 
   # Default DNS handler
