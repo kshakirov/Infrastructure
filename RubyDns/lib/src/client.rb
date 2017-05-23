@@ -23,11 +23,11 @@ module TurboInternational
 
 
     def query name
-       p system("dig @localhost -p 5300 \"#{get_full_name(name)}\"")
+       p system("dig @#{@dns_server} -p #{@dns_port} \"#{get_full_name(name)}\"")
     end
 
     def set_dns name
-      p system("dig @localhost -p 5300 \"set_dns:#{get_full_name(name)}:#{get_vpn_ip}\"")
+      p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{get_vpn_ip}\"")
     end
 
   end
