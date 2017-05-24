@@ -78,8 +78,8 @@ public class RabbitSpout extends BaseRichSpout
                 LOG.info("Emitting forgotten email: " + (String) message.get("email"));
                 _collector.emit("forgottenPassword", new Values(message.get("email"), createDataValue(message)));
             } else if (SpoutUtils.isNewUser(message)) {
-                LOG.info("Emitting new user email: " + (String) message.get("email"), createDataValue(message));
-                _collector.emit("newUser", new Values(message.get("email")));
+                LOG.info("Stubbing  new user email: " + (String) message.get("email"), createDataValue(message));
+                //_collector.emit("newUser", new Values(message.get("email")));
             } else if (SpoutUtils.isOrder(message)) {
                 LOG.info("Emitting new order email: " + message.get("order_id").toString());
                 _collector.emit("order", new Values(message.get("email"), createOrderDataValue(message)));
