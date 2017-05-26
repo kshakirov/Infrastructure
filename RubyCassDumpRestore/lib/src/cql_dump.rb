@@ -23,7 +23,7 @@ module TurboCassandra
     end
 
     def to_csv table_name
-      cql = "\"USE #{@keyspace} ; SELECT * FROM  #{table_name} limit 1;\""
+      cql = "\"USE #{@keyspace} ; COPY   #{table_name}  TO 'data/#{@keyspace}/#{table_name}.csv';\""
       seed_host = TurboCassandra::TurboCluster.get_cassandra_seed
       command = "cqlsh #{seed_host}  --cqlversion=\"3.4.0\" -e #{cql}"
       output = system(command)
