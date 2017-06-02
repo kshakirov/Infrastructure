@@ -29,10 +29,7 @@ module TurboInternational
     def set_dns name
       p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{get_vpn_ip}\"")
     end
-    
-    def set_dns_lazy name,ip
-      p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{ip}\"")
-    end
+   
 
     def set_dns_lazy  name, ip
       p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{ip}\"")
@@ -41,7 +38,7 @@ module TurboInternational
     def batch_set_dns
       nodes = YAML.load_file 'data/ip2name.yml'
       nodes.each do |node|
-        p "dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{node[:name]}:#{node[:ip]}\""
+        p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{node[:name]}:#{node[:ip]}\"")
       end
     end
 
