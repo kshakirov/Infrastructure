@@ -34,5 +34,12 @@ module TurboInternational
       p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{ip}\"")
     end
 
+    def batch_set_dns
+      nodes = YAML.load_file 'data/ip2name.yml'
+      nodes.each do |node|
+        p "dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{node[:name]}:#{node[:ip]}\""
+      end
+    end
+
   end
 end

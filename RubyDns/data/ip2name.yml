@@ -1,0 +1,27 @@
+---
+- :ip: 10.8.0.4
+  :name: " tbp.cluster.turbointernational.com"
+- :ip: 10.8.0.5
+  :name: " tbs.cluster.turbointernational.com"
+- :ip: 10.8.0.20
+  :name: " epp.cluster.turbointernational.com"
+- :ip: 10.8.0.21
+  :name: " eps.cluster.turbointernational.com"
+- :ip: 10.8.0.14
+  :name: " stm.cluster.turbointernational.com"
+- :ip: 10.8.0.8
+  :name: "  afs.cluster.turbointernational.com"
+- :ip: 10.8.0.11
+  :name: " es1.cluster.turbointernational.com"
+- :ip: 10.8.0.22
+  :name: " es2.cluster.turbointernational.com"
+- :ip: 10.8.0.10
+  :name: " aas.cluster.turbointernational.com"
+- :ip: 10.8.0.9
+  :name: " cn2.cluster.turbointernational.com"
+- :ip: 10.8.0.16
+  :name: " cn3.cluster.turbointernational.com"
+- :ip: 10.8.0.17
+  :name: " stc1.cluster.turbointernational.com"
+- :ip: 10.8.0.7
+  :name: tdns.cluster.turbointernational.com
