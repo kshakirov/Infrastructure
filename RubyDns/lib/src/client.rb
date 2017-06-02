@@ -3,9 +3,9 @@ module TurboInternational
 
 
     def initialize
-      @addr_pattern = '192.168.'
-      @dns_server = '0.0.0.0'
-      @dns_port = 5300
+      @addr_pattern = '10.8.'
+      @dns_server = '10.8.0.7'
+      @dns_port = 53
     end
 
     def get_full_name name
@@ -28,6 +28,10 @@ module TurboInternational
 
     def set_dns name
       p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{get_vpn_ip}\"")
+    end
+    
+    def set_dns_lazy name,ip
+      p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{ip}\"")
     end
 
     def set_dns_lazy  name, ip
