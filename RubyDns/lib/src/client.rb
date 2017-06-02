@@ -34,5 +34,9 @@ module TurboInternational
       p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{ip}\"")
     end
 
+    def set_dns_lazy  name, ip
+      p system("dig @#{@dns_server} -p #{@dns_port} \"set_dns:#{get_full_name(name)}:#{ip}\"")
+    end
+
   end
 end
