@@ -62,7 +62,6 @@ public class CustomerTopology {
 
     public static void main(String[] args) throws InvalidTopologyException, AuthorizationException, AlreadyAliveException {
 
-        System.out.println("Customer Topology started");
         Options options = new Options()
                 .addOption("properties", true, "Configuration properties")
                 .addOption("remote", false, "Use remote cluster");
@@ -78,12 +77,12 @@ public class CustomerTopology {
                 } finally {
                     in.close();
                 }
+                System.out.println( System.getProperty("topology_name") + "  started");
 
                 if (commandLine.hasOption("remote")) {
-                    System.out.println("REMOTE");
-                    submitRemoteCluster("CustomerTopology");
+                    submitRemoteCluster(System.getProperty("topology_name"));
                 } else {
-                    submitLocalCluster("customerTopology");
+                    submitLocalCluster(System.getProperty("topology_name"));
                 }
 
             } else {
