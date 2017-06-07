@@ -28,7 +28,7 @@ public class RabbitSpout extends BaseRichSpout
 
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitSpout.class);
-    private final String QUEUE_NAME = "customer_email";
+    private  String QUEUE_NAME;
     SpoutOutputCollector _collector;
     private String rabbitHost;
     Random _rand;
@@ -36,8 +36,9 @@ public class RabbitSpout extends BaseRichSpout
     private QueueingConsumer consumer;
     private Connection connection;
 
-    public RabbitSpout(String rabbitHost) {
+    public RabbitSpout(String rabbitHost, String queue_name) {
         this.rabbitHost = rabbitHost;
+        this.QUEUE_NAME = queue_name;
     }
 
     @Override

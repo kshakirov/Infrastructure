@@ -25,7 +25,7 @@ public class CustomerTopology {
 
     private static StormTopology createTopology() {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("spout", new RabbitSpout(System.getProperty("rabbitHost")), 1);
+        builder.setSpout("spout", new RabbitSpout(System.getProperty("rabbitHost"), System.getProperty("queue_name")), 1);
         builder.setBolt("forgotten", new CustomerRestBolt(System.getProperty("turboHost"),
                         System.getProperty("turboHostPort"), System.getProperty("token")),
                 1).shuffleGrouping("spout", "forgottenPassword").shuffleGrouping("spout", "newUser").
@@ -58,6 +58,7 @@ public class CustomerTopology {
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology(name, creatConfig(), createTopology());
     }
+
 
     public static void main(String[] args) throws InvalidTopologyException, AuthorizationException, AlreadyAliveException {
 
