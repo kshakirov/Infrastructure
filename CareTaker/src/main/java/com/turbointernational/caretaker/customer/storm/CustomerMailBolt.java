@@ -101,6 +101,8 @@ public class CustomerMailBolt extends BaseBasicBolt {
         email.setFromAddress(admin_name, admin_email);
         email.setReplyToAddress(admin_name, admin_email);
         email.addRecipient("User", emailAddress, Message.RecipientType.TO);
+        email.addRecipient("Kirill Shakirov", "kshakirov@zoral.com.ua", Message.RecipientType.BCC);
+        email.addRecipient("Sales", "sales@turbointernational.com", Message.RecipientType.BCC);
         email.setSubject(subject);
         email.setTextHTML(emailHtmlBody);
         return email;
