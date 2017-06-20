@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'turbo_cassandra_dumper'
-  s.version     = '0.0.1'
-  s.date        = '2017-06-19'
+  s.version     = '1.0.1'
+  s.date        = '2017-06-20'
   s.summary     = "TurboCassandraDumper!"
   s.description = "Tools to dump/restore Cassandra database"
   s.authors     = ["Kirill Shakirov"]
@@ -12,4 +12,6 @@ Gem::Specification.new do |s|
       'http://rubygems.org/gems/hola'
   s.license       = 'MIT'
   s.executables << 'dump.rb'
+  s.executables << 'restore.rb'
+  s.add_runtime_dependency 'cassandra-driver'
 end

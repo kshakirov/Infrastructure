@@ -3,17 +3,18 @@ module TurboCassandra
     private
 
     def check_data_dirs
-      unless Dir.exists? "data/"
-        Dir.mkdir "data"
+      unless Dir.exists? @data_folder
+        Dir.mkdir @data_folder
       end
-      unless Dir.exists? "data/" + @keyspace
-        Dir.mkdir "data/#{@keyspace}"
+      unless Dir.exists?  "#{@data_folder}/#{@keyspace}"
+        Dir.mkdir "#{@data_folder}/#{@keyspace}"
       end
     end
 
     def init keyspace
       @session = TurboCassandra::TurboCluster.get_session keyspace
       @keyspace = keyspace
+      @data_folder = ENV['TURBO_DUMP_FOLDER']
       check_data_dirs
     end
 
@@ -23,7 +24,7 @@ module TurboCassandra
     end
 
     def to_csv table_name
-      cql = "\"USE #{@keyspace} ; COPY   #{table_name}  TO 'data/#{@keyspace}/#{table_name}.csv';\""
+      cql = "\"USE #{@keyspace} ; COPY   #{table_name}  TO '#{@data_folder}/#{@keyspace}/#{table_name}.csv';\""
       seed_host = TurboCassandra::TurboCluster.get_cassandra_seed
       command = "cqlsh #{seed_host}  --cqlversion=\"3.4.0\" -e #{cql}"
       output = system(command)

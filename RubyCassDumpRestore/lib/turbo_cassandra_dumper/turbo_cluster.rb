@@ -1,7 +1,7 @@
 module TurboCassandra
   class TurboCluster
     @@session = nil
-    @@hosts = ['10.1.3.15', '10.1.3.16', '10.1.3.17']
+    @@hosts = ENV['TURBO_CASSANDRA_HOSTS'].split(',')
     def self.get_session keyspace
       if @@session.nil?
         @@session = connect_cluster keyspace
