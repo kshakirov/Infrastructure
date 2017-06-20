@@ -15,7 +15,9 @@ module TurboCassandra
       cql = "\"USE #{@keyspace} ; COPY   #{table_name}  FROM '#{filename}';\""
       seed_host = TurboCassandra::TurboCluster.get_cassandra_seed
       command = "cqlsh #{seed_host}  --cqlversion=\"3.4.0\" -e #{cql}"
-      puts command
+   #   puts command
+      output = system(command)
+      puts output
     end
 
     def _run
