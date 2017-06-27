@@ -22,6 +22,9 @@ public class AnalyticsTopology {
                 System.getProperty("rabbitQueue")),1);
         builder.setBolt("CassandraBolt", new CassandraBolt(System.getProperty("environment")), 1).
                 shuffleGrouping("RabbitSpout", "message");
+        builder.setBolt("ElasticBolt", new ElasticBolt(System.getProperty("environment")), 1).
+                shuffleGrouping("CassandraBolt", "entity");
+
 
         return  builder.createTopology();
     }

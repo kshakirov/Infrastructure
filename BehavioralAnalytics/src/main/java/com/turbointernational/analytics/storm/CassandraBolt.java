@@ -49,7 +49,7 @@ public class CassandraBolt extends BaseRichBolt {
         Long id = tuple.getLongByField("id");
         Values values = cassandraBoltExecutor.execute(id,type);
         collector.ack(tuple);
-        collector.emit(values);
+        collector.emit("entity",values);
 
     }
 

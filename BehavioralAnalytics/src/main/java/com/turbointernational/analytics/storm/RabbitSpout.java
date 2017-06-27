@@ -83,10 +83,13 @@ public class RabbitSpout extends BaseRichSpout {
             delivery = consumer.nextDelivery();
             JSONObject message = SpoutUtils.readMessage(new String(delivery.getBody()));
             Values values = spoutExecutor.execute(message);
+            channel.basicAck(delivery.getEnvelope().getDeliveryTag(),false);
             _collector.emit("message",values);
         } catch (ParseException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
