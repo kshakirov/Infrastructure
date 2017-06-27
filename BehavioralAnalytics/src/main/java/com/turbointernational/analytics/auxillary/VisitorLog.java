@@ -24,11 +24,24 @@ public class VisitorLog {
         return visitorId;
     }
 
+    public void setVisitorId(Long visitorId) {
+        this.visitorId = visitorId;
+    }
+
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public Date getDate() {
         return date;
     }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
 }
