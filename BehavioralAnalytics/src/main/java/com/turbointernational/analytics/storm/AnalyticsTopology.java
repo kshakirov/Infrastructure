@@ -1,4 +1,4 @@
-package com.turbointernational.behavioralAnalytics.storm;
+package com.turbointernational.analytics.storm;
 
 import org.apache.commons.cli.*;
 import org.apache.storm.Config;
@@ -7,7 +7,6 @@ import org.apache.storm.generated.StormTopology;
 import org.apache.storm.topology.TopologyBuilder;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -15,15 +14,14 @@ import java.util.Properties;
 /**
  * Created by kshakirov on 6/23/17.
  */
-public class BehavioralAnalyticsTopology {
+public class AnalyticsTopology {
 
     private static StormTopology createTopology(){
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("RabbitSpout",new RabbitSpout(System.getProperty("rabbitHost"),
                 System.getProperty("rabbitQueue")),1);
-        builder.setBolt("CassandraBolt", new CassandraBolt(System.getProperty("cassandraHost"),
-                System.getProperty("cassandraVisitorTableName"), System.getProperty("cassandraCustomerTableName")), 4).
-                shuffleGrouping("RabbitSpout", "customerLog").shuffleGrouping("RabbitSpout", "visitorLog");
+        builder.setBolt("CassandraBolt", new CassandraBolt(System.getProperty("environment")), 1).
+                shuffleGrouping("RabbitSpout", "message");
 
         return  builder.createTopology();
     }
@@ -60,7 +58,7 @@ public class BehavioralAnalyticsTopology {
         } finally {
             in.close();
         }
-        submitLocalCluster("DevelopmentBehavioralAnalyticsTopology");
+        submitLocalCluster("DevelopmentAnalyticsTopology");
 
 
     }

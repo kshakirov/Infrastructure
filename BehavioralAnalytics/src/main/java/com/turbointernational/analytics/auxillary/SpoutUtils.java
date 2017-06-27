@@ -1,4 +1,4 @@
-package com.turbointernational.behavioralAnalytics.auxillary;
+package com.turbointernational.analytics.auxillary;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,9 +16,7 @@ public class SpoutUtils {
 
     public static boolean isVisitorLog(JSONObject message){
 
-        return ((String) message.get("type")).equalsIgnoreCase("visitor");
+        return ((String) message.get("type")).equalsIgnoreCase(CassandraTable.VISITOR_LOG.tableize());
     }
-    public static boolean isCustomerLog(JSONObject message){
-        return ((String) message.get("type")).equalsIgnoreCase("customer");
-    }
+
 }

@@ -1,10 +1,11 @@
-package com.turbointernational.behavioralAnalytics.storm;
+package com.turbointernational.analytics.storm;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.QueueingConsumer;
-import com.turbointernational.behavioralAnalytics.auxillary.SpoutUtils;
+import com.turbointernational.analytics.auxillary.SpoutExecutor;
+import com.turbointernational.analytics.auxillary.SpoutUtils;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -34,10 +35,12 @@ public class RabbitSpout extends BaseRichSpout {
     private static Channel channel;
     private QueueingConsumer consumer;
     private Connection connection;
+    private SpoutExecutor spoutExecutor;
 
     public RabbitSpout(String rabbitHost, String queue_name) {
         this.rabbitHost = rabbitHost;
         this.QUEUE_NAME = queue_name;
+
     }
 
     @Override
@@ -45,7 +48,6 @@ public class RabbitSpout extends BaseRichSpout {
         _collector = collector;
         _rand = new Random();
         ConnectionFactory factory = new ConnectionFactory();
-
         factory.setHost(rabbitHost);
         connection = null;
         try {
@@ -64,12 +66,12 @@ public class RabbitSpout extends BaseRichSpout {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        spoutExecutor = new SpoutExecutor();
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("customerLog", new Fields("id"));
-        declarer.declareStream("visitorLog", new Fields("id"));
+        declarer.declareStream("message", new Fields("type","id"));
     }
 
     @Override
@@ -80,11 +82,8 @@ public class RabbitSpout extends BaseRichSpout {
         try {
             delivery = consumer.nextDelivery();
             JSONObject message = SpoutUtils.readMessage(new String(delivery.getBody()));
-            if(SpoutUtils.isCustomerLog(message)){
-                _collector.emit("customerLog", new Values(message.get("id")));
-            }else if(SpoutUtils.isVisitorLog(message)){
-                _collector.emit("visitorLog", new Values(message.get("id")));
-            }
+            Values values = spoutExecutor.execute(message);
+            _collector.emit("message",values);
         } catch (ParseException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
