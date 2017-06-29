@@ -9,6 +9,7 @@ import io.searchbox.indices.CreateIndex;
 import org.elasticsearch.common.settings.Settings;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by kshakirov on 6/27/17.
@@ -36,14 +37,17 @@ public class ElasticBoltExecutor {
         return  client.execute(new CreateIndex.Builder(elasticIndex).settings(settingsBuilder.build().getAsMap()).build());
     }
 
-    public void indexVisitorLog(VisitorLog visitorLog){
-        Index index = new Index.Builder(visitorLog).index(elasticIndex).type("visitorLog").build();
+    public <T> void execute(T t){
+        Index index = new Index.Builder(t).index(elasticIndex).type(t.getClass().
+                getSimpleName()).build();
         try {
             client.execute(index);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
 
 
 }

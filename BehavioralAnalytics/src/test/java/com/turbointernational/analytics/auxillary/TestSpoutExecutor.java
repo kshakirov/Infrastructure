@@ -13,6 +13,10 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.util.HashMap;
 
 /**
  * Unit test for simple App.
@@ -45,8 +49,14 @@ public class TestSpoutExecutor
     {
         SpoutExecutor spoutExecutor = new SpoutExecutor();
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("type", "visitor");
-        jsonObject.put("id", 576879073);
+        JSONParser parser = new JSONParser();
+        try {
+           jsonObject = (JSONObject) parser.parse("{\"type\":\"visitor_logs\",  \"data\":  {  \"visitor_id\":  576879073, \"date\": 1498484873916, \"id\": \"0d9d8fc0-5a76-11e7-aa4e-59c6221f711e\", \"ip\": \"127.0.0.1\" }}");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
         Values values = spoutExecutor.execute(jsonObject);
         assertNotNull( values );
 

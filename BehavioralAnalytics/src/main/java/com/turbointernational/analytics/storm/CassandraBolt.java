@@ -14,6 +14,7 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -46,8 +47,8 @@ public class CassandraBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         String type = tuple.getStringByField("type");
-        Long id = tuple.getLongByField("id");
-        Values values = cassandraBoltExecutor.execute(id,type);
+        HashMap primaryKeys = (HashMap) tuple.getValue(1);
+        Values values = cassandraBoltExecutor.execute(primaryKeys,type);
         collector.ack(tuple);
         collector.emit("entity",values);
 
@@ -55,7 +56,7 @@ public class CassandraBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declareStream("entity", new Fields("id", "entity"));
+        outputFieldsDeclarer.declareStream("entity", new Fields("type", "entity"));
     }
 
 

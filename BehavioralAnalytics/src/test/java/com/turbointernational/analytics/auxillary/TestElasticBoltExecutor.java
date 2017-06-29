@@ -1,6 +1,5 @@
 package com.turbointernational.analytics.auxillary;
 
-import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import junit.framework.Assert;
 import org.apache.storm.shade.org.joda.time.DateTime;
@@ -8,7 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -35,6 +33,6 @@ public class TestElasticBoltExecutor {
         visitorLog.setVisitorId(Long.valueOf(12345));
         visitorLog.setId(UUID.randomUUID());
         visitorLog.setDate(DateTime.now().toDate());
-        executor.indexVisitorLog(visitorLog);
+        executor.execute(visitorLog);
     }
 }
