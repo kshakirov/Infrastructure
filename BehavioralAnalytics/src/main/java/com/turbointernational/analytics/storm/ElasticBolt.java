@@ -1,5 +1,6 @@
 package com.turbointernational.analytics.storm;
 
+import com.turbointernational.analytics.auxillary.BoltUtils;
 import com.turbointernational.analytics.auxillary.CassandraEnv;
 import com.turbointernational.analytics.auxillary.ElasticBoltExecutor;
 import org.apache.storm.task.OutputCollector;
@@ -40,12 +41,15 @@ public class ElasticBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         String type = tuple.getStringByField("type");
         executor.execute(tuple.getValue(1));
+        if(BoltUtils.isVisitorLog(type)){
+            collector.emit("bot_finder",new Values(type, tuple.getValue(1)));
+        }
         collector.ack(tuple);
 
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declareStream("visitor_logs", new Fields("visitor_id", "entity"));
+        outputFieldsDeclarer.declareStream("bot_finder", new Fields("visitor_id", "log"));
     }
 }

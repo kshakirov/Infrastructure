@@ -24,6 +24,8 @@ public class AnalyticsTopology {
                 shuffleGrouping("RabbitSpout", "message");
         builder.setBolt("ElasticBolt", new ElasticBolt(System.getProperty("environment")), 1).
                 shuffleGrouping("CassandraBolt", "entity");
+        builder.setBolt("BotFinderBolt", new BotFinderBolt(System.getProperty("environment")), 1).
+                shuffleGrouping("ElasticBolt", "bot_finder");
 
 
         return  builder.createTopology();
