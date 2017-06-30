@@ -24,6 +24,16 @@ public class TestBotFinder {
 
     @Test
     public void testExecutor(){
-        executor.executor(576879073L);
+        executor.executor(576879073L, 1L);
+    }
+
+    @Test
+    public void testReportBot(){
+        executor.reportBot(1234L);
+    }
+
+    @Test
+    public void testStatProductRank(){
+        executor.statProductRank(1L);
     }
 }
