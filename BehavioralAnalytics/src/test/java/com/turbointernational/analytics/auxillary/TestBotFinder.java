@@ -1,7 +1,6 @@
 package com.turbointernational.analytics.auxillary;
 
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Session;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,13 +17,13 @@ public class TestBotFinder {
                 .addContactPoints(new String[]{"10.1.3.15", "10.1.3.16", "10.1.3.17"})
                 .build();
         session = cluster.connect("turbo_development");                                           // (2)
-        executor = new BotFinderBoltExecutor(session);
+        executor = new BotFinderBoltExecutor(session, 60L);
 
     }
 
     @Test
     public void testExecutor(){
-        executor.executor(576879073L, 1L);
+        executor.execute(576879073L, 1L);
     }
 
     @Test
