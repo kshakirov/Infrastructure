@@ -3,6 +3,7 @@ package com.turbointernational.analytics.storm;
 import com.turbointernational.analytics.auxillary.BoltUtils;
 import com.turbointernational.analytics.auxillary.CassandraEnv;
 import com.turbointernational.analytics.auxillary.ElasticBoltExecutor;
+import com.turbointernational.analytics.auxillary.ElasticIndex;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -38,9 +39,9 @@ public class ElasticBolt extends BaseRichBolt {
     }
 
     @Override
-    public void execute(Tuple tuple) {
+    public void  execute(Tuple tuple) {
         String type = tuple.getStringByField("type");
-        executor.execute(tuple.getValue(1));
+        executor.execute((ElasticIndex) tuple.getValue(1));
         if(BoltUtils.isVisitorLog(type)){
             collector.emit("bot_finder",new Values(type, tuple.getValue(1)));
         }

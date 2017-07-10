@@ -35,4 +35,11 @@ public class TestElasticBoltExecutor {
         visitorLog.setDate(DateTime.now().toDate());
         executor.execute(visitorLog);
     }
+    @Test
+    public void testProductRank(){
+        ProductRank productRank = new ProductRank();
+        productRank.setSku(10000001L);
+        productRank.setTimes(120L);
+        executor.execute(productRank);
+    }
 }

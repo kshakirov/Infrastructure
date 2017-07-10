@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 
 @Table(keyspace = "", name = "visitor_logs")
-public class VisitorLog {
+public class VisitorLog implements ElasticIndex{
     @PartitionKey
     @Column(name = "visitor_id")
     private Long visitorId;
@@ -74,5 +74,20 @@ public class VisitorLog {
 
     public void setProduct(Long product) {
         this.product = product;
+    }
+
+    @Override
+    public String declareElasticIndex() {
+        return String.valueOf(id);
+    }
+
+    public void setElasticIndex(){
+
+    }
+
+
+    @Override
+    public boolean hasAccumulator() {
+        return false;
     }
 }

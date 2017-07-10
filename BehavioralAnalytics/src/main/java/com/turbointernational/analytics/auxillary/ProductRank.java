@@ -8,7 +8,7 @@ import com.datastax.driver.mapping.annotations.Table;
  * Created by kshakirov on 6/30/17.
  */
 @Table(name="product_ranks")
-public class ProductRank {
+public class ProductRank implements ElasticIndex {
     @PartitionKey
     @Column(name="sku")
     private Long sku;
@@ -29,5 +29,15 @@ public class ProductRank {
 
     public void setTimes(Long times) {
         this.times = times;
+    }
+
+    @Override
+    public String declareElasticIndex() {
+        return String.valueOf(sku);
+    }
+
+    @Override
+    public boolean hasAccumulator() {
+        return true;
     }
 }
